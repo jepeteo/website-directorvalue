@@ -88,7 +88,10 @@ export function AdminHeader({ user }: AdminHeaderProps) {
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center space-x-2 p-2">
+              <Button
+                variant="ghost"
+                className="flex items-center space-x-2 p-2"
+              >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user.image || undefined} />
                   <AvatarFallback className="bg-blue-100 text-blue-700">

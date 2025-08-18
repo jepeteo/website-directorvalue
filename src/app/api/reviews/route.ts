@@ -27,10 +27,9 @@ export async function POST(req: NextRequest) {
 
     // Check if business exists and is active
     const business = await prisma.business.findUnique({
-      where: { 
+      where: {
         id: validatedData.businessId,
-        isActive: true,
-        status: "APPROVED"
+        status: "ACTIVE"
       }
     })
 
@@ -42,12 +41,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if user already reviewed this business
-    const existingReview = await prisma.review.findUnique({
+    const existingReview = await prisma.review.findFirst({
       where: {
-        userId_businessId: {
-          userId: token.sub!,
-          businessId: validatedData.businessId
-        }
+        userId: token.sub!,
+        businessId: validatedData.businessId
       }
     })
 
@@ -62,10 +59,10 @@ export async function POST(req: NextRequest) {
     const review = await prisma.review.create({
       data: {
         rating: validatedData.rating,
-        comment: validatedData.comment,
+        content: validatedData.comment,
         userId: token.sub!,
         businessId: validatedData.businessId,
-        isVisible: true, // Auto-approve for now, can add moderation later
+        isHidden: false, // Auto-approve for now, can add moderation later
       },
       include: {
         user: {
@@ -81,26 +78,6 @@ export async function POST(req: NextRequest) {
             slug: true,
           }
         }
-      }
-    })
-
-    // Update business average rating
-    const allReviews = await prisma.review.findMany({
-      where: {
-        businessId: validatedData.businessId,
-        isVisible: true
-      },
-      select: {
-        rating: true
-      }
-    })
-
-    const averageRating = allReviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / allReviews.length
-
-    await prisma.business.update({
-      where: { id: validatedData.businessId },
-      data: { 
-        averageRating: Math.round(averageRating * 10) / 10 // Round to 1 decimal
       }
     })
 
@@ -140,7 +117,7 @@ export async function GET(req: NextRequest) {
     const reviews = await prisma.review.findMany({
       where: {
         businessId,
-        isVisible: true
+        isHidden: false
       },
       include: {
         user: {
@@ -160,7 +137,7 @@ export async function GET(req: NextRequest) {
     const totalReviews = await prisma.review.count({
       where: {
         businessId,
-        isVisible: true
+        isHidden: false
       }
     })
 

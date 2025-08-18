@@ -169,8 +169,8 @@ async function main() {
         saturday: { open: '18:00', close: '23:30' },
         sunday: { open: '18:00', close: '22:00' },
       },
-      planType: 'VIP',
-      status: 'ACTIVE',
+      planType: 'VIP' as const,
+      status: 'ACTIVE' as const,
       ownerId: businessOwners[0].id,
       categoryId: restaurants?.id,
       trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
@@ -198,8 +198,8 @@ async function main() {
         friday: { open: '09:00', close: '18:00' },
         saturday: { open: '10:00', close: '16:00' },
       },
-      planType: 'PRO',
-      status: 'ACTIVE',
+      planType: 'PRO' as const,
+      status: 'ACTIVE' as const,
       ownerId: businessOwners[1].id,
       categoryId: technology?.id,
       trialEndsAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 days from now
@@ -226,8 +226,8 @@ async function main() {
         thursday: { open: '08:00', close: '17:00' },
         friday: { open: '08:00', close: '17:00' },
       },
-      planType: 'BASIC',
-      status: 'ACTIVE',
+      planType: 'BASIC' as const,
+      status: 'ACTIVE' as const,
       ownerId: businessOwners[2].id,
       categoryId: homeGarden?.id,
       trialEndsAt: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000), // 25 days from now

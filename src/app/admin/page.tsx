@@ -6,7 +6,6 @@ import {
   Users,
   MessageSquare,
   TrendingUp,
-  DollarSign,
   Eye,
   Star,
   Flag,
@@ -15,6 +14,28 @@ import {
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+
+interface RecentBusiness {
+  id: string;
+  name: string;
+  createdAt: Date;
+  status: string;
+  planType: string;
+}
+
+interface RecentReview {
+  id: string;
+  rating: number;
+  content: string | null;
+  createdAt: Date;
+  business: {
+    name: string;
+  };
+  user: {
+    name: string | null;
+    email: string;
+  };
+}
 
 async function getDashboardStats() {
   try {
@@ -31,51 +52,51 @@ async function getDashboardStats() {
     ] = await Promise.all([
       // Total businesses
       prisma.business.count(),
-      
+
       // Active businesses
       prisma.business.count({
-        where: { status: 'ACTIVE' }
+        where: { status: "ACTIVE" },
       }),
-      
+
       // Total users
       prisma.user.count(),
-      
+
       // Total reviews
       prisma.review.count(),
-      
-      // Average rating across all businesses
-      prisma.business.aggregate({
-        _avg: { averageRating: true }
+
+      // Average rating across all reviews
+      prisma.review.aggregate({
+        _avg: { rating: true },
       }),
-      
+
       // Pending abuse reports (mock for now)
       0, // Will implement when we add abuse reports
-      
+
       // Recent businesses (last 7 days)
       prisma.business.count({
         where: {
           createdAt: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-          }
-        }
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          },
+        },
       }),
-      
-      // Recent users (last 7 days)  
+
+      // Recent users (last 7 days)
       prisma.user.count({
         where: {
           createdAt: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-          }
-        }
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          },
+        },
       }),
-      
+
       // Recent reviews (last 7 days)
       prisma.review.count({
         where: {
           createdAt: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-          }
-        }
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          },
+        },
       }),
     ]);
 
@@ -84,14 +105,14 @@ async function getDashboardStats() {
       activeBusinesses,
       totalUsers,
       totalReviews,
-      averageRating: averageRating._avg.averageRating || 0,
+      averageRating: averageRating._avg.rating || 0,
       pendingReports,
       recentBusinesses,
       recentUsers,
       recentReviews,
     };
   } catch (error) {
-    console.error('Error fetching dashboard stats:', error);
+    console.error("Error fetching dashboard stats:", error);
     return {
       totalBusinesses: 0,
       activeBusinesses: 0,
@@ -112,45 +133,45 @@ async function getRecentActivity() {
     const [businesses, users, reviews] = await Promise.all([
       prisma.business.findMany({
         take: 5,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         select: {
           id: true,
           name: true,
           createdAt: true,
           status: true,
           planType: true,
-        }
+        },
       }),
-      
+
       prisma.user.findMany({
         take: 5,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         select: {
           id: true,
           name: true,
           email: true,
           createdAt: true,
           role: true,
-        }
+        },
       }),
-      
+
       prisma.review.findMany({
         take: 5,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         include: {
           business: {
-            select: { name: true }
+            select: { name: true },
           },
           user: {
-            select: { name: true, email: true }
-          }
-        }
+            select: { name: true, email: true },
+          },
+        },
       }),
     ]);
 
     return { businesses, users, reviews };
   } catch (error) {
-    console.error('Error fetching recent activity:', error);
+    console.error("Error fetching recent activity:", error);
     return { businesses: [], users: [], reviews: [] };
   }
 }
@@ -171,9 +192,11 @@ export default async function AdminDashboard() {
       bgColor: "bg-blue-50",
     },
     {
-      title: "Active Businesses", 
+      title: "Active Businesses",
       value: stats.activeBusinesses,
-      change: `${Math.round((stats.activeBusinesses / Math.max(stats.totalBusinesses, 1)) * 100)}% active`,
+      change: `${Math.round(
+        (stats.activeBusinesses / Math.max(stats.totalBusinesses, 1)) * 100
+      )}% active`,
       icon: Activity,
       color: "text-green-600",
       bgColor: "bg-green-50",
@@ -183,7 +206,7 @@ export default async function AdminDashboard() {
       value: stats.totalUsers,
       change: `+${stats.recentUsers} this week`,
       icon: Users,
-      color: "text-purple-600", 
+      color: "text-purple-600",
       bgColor: "bg-purple-50",
     },
     {
@@ -219,7 +242,7 @@ export default async function AdminDashboard() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Welcome back! Here's what's happening on Director Value.
+            Welcome back! Here&apos;s what&apos;s happening on Director Value.
           </p>
         </div>
         <div className="flex space-x-3">
@@ -252,10 +275,9 @@ export default async function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
-                {typeof stat.value === 'number' && stat.value > 999 
+                {typeof stat.value === "number" && stat.value > 999
                   ? `${(stat.value / 1000).toFixed(1)}k`
-                  : stat.value
-                }
+                  : stat.value}
               </div>
               <p className="text-xs text-gray-500 mt-1">{stat.change}</p>
             </CardContent>
@@ -276,8 +298,11 @@ export default async function AdminDashboard() {
           <CardContent>
             <div className="space-y-4">
               {activity.businesses.length > 0 ? (
-                activity.businesses.map((business: any) => (
-                  <div key={business.id} className="flex items-center justify-between">
+                activity.businesses.map((business: RecentBusiness) => (
+                  <div
+                    key={business.id}
+                    className="flex items-center justify-between"
+                  >
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">
                         {business.name}
@@ -288,14 +313,14 @@ export default async function AdminDashboard() {
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge 
-                        variant={business.status === 'ACTIVE' ? 'default' : 'secondary'}
+                      <Badge
+                        variant={
+                          business.status === "ACTIVE" ? "default" : "secondary"
+                        }
                       >
                         {business.status}
                       </Badge>
-                      <Badge variant="outline">
-                        {business.planType}
-                      </Badge>
+                      <Badge variant="outline">{business.planType}</Badge>
                     </div>
                   </div>
                 ))
@@ -324,7 +349,7 @@ export default async function AdminDashboard() {
           <CardContent>
             <div className="space-y-4">
               {activity.reviews.length > 0 ? (
-                activity.reviews.map((review: any) => (
+                activity.reviews.map((review: RecentReview) => (
                   <div key={review.id} className="space-y-2">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -341,16 +366,16 @@ export default async function AdminDashboard() {
                             key={i}
                             className={`h-3 w-3 ${
                               i < review.rating
-                                ? 'text-yellow-400 fill-current'
-                                : 'text-gray-300'
+                                ? "text-yellow-400 fill-current"
+                                : "text-gray-300"
                             }`}
                           />
                         ))}
                       </div>
                     </div>
-                    {review.comment && (
+                    {review.content && (
                       <p className="text-xs text-gray-600 truncate">
-                        "{review.comment}"
+                        &ldquo;{review.content}&rdquo;
                       </p>
                     )}
                     <p className="text-xs text-gray-500">

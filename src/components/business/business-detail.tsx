@@ -3,13 +3,7 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReviewForm } from "@/components/reviews/review-form";
 import { ReviewsList } from "@/components/reviews/reviews-list";
 import {
@@ -23,6 +17,16 @@ import {
   Share2,
   Navigation,
 } from "lucide-react";
+
+interface BusinessHours {
+  closed?: boolean;
+  open?: string;
+  close?: string;
+}
+
+interface HoursData {
+  [key: string]: BusinessHours;
+}
 
 interface BusinessDetailProps {
   business: {
@@ -38,7 +42,7 @@ interface BusinessDetailProps {
     phone: string | null;
     email: string | null;
     website: string | null;
-    hours: any;
+    hours: HoursData | null;
     category: {
       id: string;
       name: string;
@@ -77,7 +81,7 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
     setRefreshTrigger((prev) => prev + 1);
   };
 
-  const formatHours = (hours: any) => {
+  const formatHours = (hours: HoursData | null): HoursData => {
     if (!hours) return {};
     return hours;
   };
@@ -91,7 +95,9 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
     "friday",
     "saturday",
   ][new Date().getDay()];
-  const todayHours = formatHours(business.hours)[currentDay];
+  const todayHours: BusinessHours | undefined = formatHours(business.hours)[
+    currentDay
+  ];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -177,7 +183,7 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
                 <CardContent>
                   <div className="space-y-2">
                     {Object.entries(formatHours(business.hours)).map(
-                      ([day, hours]: [string, any]) => (
+                      ([day, hours]: [string, BusinessHours]) => (
                         <div
                           key={day}
                           className="flex justify-between items-center"

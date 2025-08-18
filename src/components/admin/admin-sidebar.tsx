@@ -16,7 +16,6 @@ import {
   CreditCard,
   TrendingUp,
   Shield,
-  FileText,
 } from "lucide-react";
 
 const navigation = [
@@ -130,7 +129,9 @@ export function AdminSidebar() {
                   <item.icon
                     className={cn(
                       "flex-shrink-0 h-5 w-5",
-                      isActive ? "text-blue-500" : "text-gray-400 group-hover:text-gray-500"
+                      isActive
+                        ? "text-blue-500"
+                        : "text-gray-400 group-hover:text-gray-500"
                     )}
                   />
                   {!collapsed && (

@@ -7,6 +7,31 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getBusinesses, getCategories, getBusinessStats } from "@/lib/db";
 import Link from "next/link";
 
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  icon?: string;
+  businessCount?: number;
+}
+
+interface FeaturedBusiness {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  logo?: string | null;
+  city?: string;
+  country?: string;
+  planType: "VIP" | "FREE_TRIAL" | "BASIC" | "PRO";
+  averageRating: number;
+  reviewCount: number;
+  category?: {
+    name: string;
+  };
+}
+
 export default async function HomePage() {
   // Fetch real data from database
   const [businessesResult, categories, stats] = await Promise.all([
@@ -56,7 +81,7 @@ export default async function HomePage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {categories.slice(0, 6).map((category: any) => (
+            {categories.slice(0, 6).map((category: Category) => (
               <Link
                 key={category.slug}
                 href={`/c/${category.slug}`}
@@ -102,7 +127,7 @@ export default async function HomePage() {
           {featuredBusinesses.length > 0 ? (
             <>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {featuredBusinesses.map((business: any) => (
+                {featuredBusinesses.map((business: FeaturedBusiness) => (
                   <BusinessCard
                     key={business.id}
                     business={{

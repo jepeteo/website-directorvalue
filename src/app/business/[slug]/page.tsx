@@ -4,16 +4,17 @@ import { prisma } from "@/lib/prisma";
 import { BusinessDetail } from "@/components/business/business-detail";
 
 interface BusinessPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({
   params,
 }: BusinessPageProps): Promise<Metadata> {
+  const resolvedParams = await params;
   const business = await prisma.business.findUnique({
-    where: { slug: params.slug },
+    where: { slug: resolvedParams.slug },
     include: {
       category: true,
     },
@@ -26,17 +27,21 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${business.name} - ${business.category.name} | Director Value`,
-    description: business.description.substring(0, 160),
+    title: `${business.name}${
+      business.category ? ` - ${business.category.name}` : ""
+    } | Director Value`,
+    description:
+      business.description?.substring(0, 160) ||
+      `${business.name} business listing`,
   };
 }
 
 export default async function BusinessPage({ params }: BusinessPageProps) {
+  const resolvedParams = await params;
   const business = await prisma.business.findUnique({
     where: {
-      slug: params.slug,
-      isActive: true,
-      status: "APPROVED",
+      slug: resolvedParams.slug,
+      status: "ACTIVE",
     },
     include: {
       category: true,
@@ -73,5 +78,38 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
     notFound();
   }
 
-  return <BusinessDetail business={business} />;
+  // Transform database fields to match component expectations
+  const transformedBusiness = {
+    ...business,
+    description: business.description || "",
+    address: business.addressLine1 || "",
+    city: business.city || "",
+    state: business.state || "",
+    zipCode: business.postalCode || "",
+    country: business.country || "",
+    category: business.category
+      ? {
+          id: business.category.id,
+          name: business.category.name,
+        }
+      : {
+          id: "uncategorized",
+          name: "Uncategorized",
+        },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    reviews: business.reviews.map((review: any) => ({
+      id: review.id,
+      rating: review.rating,
+      comment: review.content || "",
+      createdAt: review.createdAt,
+      user: {
+        id: review.user.id,
+        name: review.user.name,
+      },
+    })),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hours: business.workingHours as any, // Type assertion for JSON field
+  };
+
+  return <BusinessDetail business={transformedBusiness} />;
 }

@@ -3,7 +3,8 @@ import EmailProvider from 'next-auth/providers/email'
 import NextAuth from 'next-auth'
 import { prisma } from '@/lib/prisma'
 
-export const authOptions = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const authOptions: any = {
   adapter: PrismaAdapter(prisma),
   providers: [
     EmailProvider({
@@ -21,7 +22,8 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    session: async ({ session, user }: { session: any; user: any }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    session: async ({ session, user }: { session: Record<string, any>; user: Record<string, any> }) => {
       if (session?.user && user?.id) {
         session.user.id = user.id
         // Get user role from database

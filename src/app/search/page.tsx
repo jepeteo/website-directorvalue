@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { Suspense } from "react";
 import { SearchResults } from "@/components/search/search-results";
 
 export const metadata: Metadata = {
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function SearchPage() {
-  return <SearchResults />;
+  return (
+    <Suspense fallback={<div>Loading search...</div>}>
+      <SearchResults />
+    </Suspense>
+  );
 }

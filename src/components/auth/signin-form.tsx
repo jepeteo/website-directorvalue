@@ -43,6 +43,7 @@ export function SignInForm() {
         router.push(`/auth/verify-request?email=${encodeURIComponent(email)}`);
       }
     } catch (error) {
+      console.error("Sign in error:", error);
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",

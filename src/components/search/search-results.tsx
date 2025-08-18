@@ -14,10 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Star, Filter, Search, MapPin, Tag, Euro } from "lucide-react";
+import { Star, Filter, Search, MapPin, Tag } from "lucide-react";
 
 interface Business {
   id: string;
@@ -379,7 +377,9 @@ export function SearchResults() {
                     <Checkbox
                       id="filter-open-now"
                       checked={openNow}
-                      onCheckedChange={setOpenNow}
+                      onCheckedChange={(checked) =>
+                        setOpenNow(checked === true)
+                      }
                     />
                     <Label htmlFor="filter-open-now">Open now</Label>
                   </div>

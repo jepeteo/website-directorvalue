@@ -117,19 +117,18 @@ export async function POST(req: NextRequest) {
         name: validatedData.name,
         slug: finalSlug,
         description: validatedData.description,
-        address: validatedData.address,
+        addressLine1: validatedData.address,
         city: validatedData.city,
         state: validatedData.state,
-        zipCode: validatedData.zipCode,
+        postalCode: validatedData.zipCode,
         country: validatedData.country,
         phone: validatedData.phone || null,
         email: validatedData.email || null,
         website: validatedData.website || null,
-        hours: validatedData.hours,
+        workingHours: validatedData.hours,
         categoryId: category.id,
         ownerId: token.sub!,
-        status: "PENDING", // Requires admin approval
-        isActive: false,
+        status: "DRAFT", // Requires admin approval
       },
       include: {
         category: true,

@@ -91,14 +91,14 @@ export function BusinessRegistrationForm() {
     hours: DEFAULT_HOURS,
   });
 
-  const updateFormData = (field: string, value: any) => {
+  const updateFormData = (field: string, value: unknown) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const updateHours = (day: string, field: string, value: any) => {
+  const updateHours = (day: string, field: string, value: unknown) => {
     setFormData((prev) => ({
       ...prev,
       hours: {
@@ -147,6 +147,7 @@ export function BusinessRegistrationForm() {
 
       router.push(`/dashboard/business/${business.id}`);
     } catch (error) {
+      console.error("Registration error:", error);
       toast({
         title: "Error",
         description: "Failed to register business. Please try again.",

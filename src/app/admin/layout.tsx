@@ -6,7 +6,8 @@ import { AdminHeader } from "@/components/admin/admin-header";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard - Director Value",
-  description: "Administrative dashboard for Director Value platform management",
+  description:
+    "Administrative dashboard for Director Value platform management",
 };
 
 export default async function AdminLayout({
@@ -27,9 +28,7 @@ export default async function AdminLayout({
       <div className="flex">
         <AdminSidebar />
         <main className="flex-1 overflow-hidden">
-          <div className="h-full p-6">
-            {children}
-          </div>
+          <div className="h-full p-6">{children}</div>
         </main>
       </div>
     </div>

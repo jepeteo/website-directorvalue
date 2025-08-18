@@ -17,7 +17,7 @@ import { Search, X } from "lucide-react";
 export function BusinessFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [status, setStatus] = useState(searchParams.get("status") || "");
   const [plan, setPlan] = useState(searchParams.get("plan") || "");
@@ -30,7 +30,7 @@ export function BusinessFilters() {
     if (plan) params.set("plan", plan);
     if (category) params.set("category", category);
     params.set("page", "1"); // Reset to first page
-    
+
     router.push(`/admin/businesses?${params.toString()}`);
   };
 
@@ -125,9 +125,7 @@ export function BusinessFilters() {
 
       {/* Action Buttons */}
       <div className="flex items-center space-x-2">
-        <Button onClick={updateFilters}>
-          Apply Filters
-        </Button>
+        <Button onClick={updateFilters}>Apply Filters</Button>
         {hasActiveFilters && (
           <Button variant="outline" onClick={clearFilters}>
             <X className="h-4 w-4 mr-2" />

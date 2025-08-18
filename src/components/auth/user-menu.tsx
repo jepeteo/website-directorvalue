@@ -13,6 +13,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+interface ExtendedUser {
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  role?: string;
+}
+
 export function UserMenu() {
   const { data: session, status } = useSession();
 
@@ -64,7 +72,7 @@ export function UserMenu() {
         <DropdownMenuItem asChild>
           <Link href="/dashboard">Dashboard</Link>
         </DropdownMenuItem>
-        {(user as any)?.role === "BUSINESS_OWNER" && (
+        {(user as ExtendedUser)?.role === "BUSINESS_OWNER" && (
           <DropdownMenuItem asChild>
             <Link href="/dashboard/business">My Business</Link>
           </DropdownMenuItem>

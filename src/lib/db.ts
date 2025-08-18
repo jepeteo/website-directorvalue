@@ -16,6 +16,7 @@ export async function getBusinesses({
 } = {}) {
   const skip = (page - 1) * limit
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {
     status: 'ACTIVE',
   }
@@ -69,9 +70,11 @@ export async function getBusinesses({
   ])
 
   // Calculate average ratings
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const businessesWithRating = businesses.map((business: any) => {
     const reviews = business.reviews
     const avgRating = reviews.length > 0 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ? reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length
       : 0
 
@@ -134,6 +137,7 @@ export async function getBusinessBySlug(slug: string) {
   // Calculate average rating
   const reviews = business.reviews
   const avgRating = reviews.length > 0
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ? reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length
     : 0
 
@@ -161,6 +165,7 @@ export async function getCategories() {
     },
   })
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return categories.map((category: any) => ({
     ...category,
     businessCount: category._count.businesses,

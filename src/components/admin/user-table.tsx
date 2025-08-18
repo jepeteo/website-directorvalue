@@ -21,47 +21,42 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   MoreHorizontal,
   Edit,
-  Eye,
-  Trash2,
-  CheckCircle,
-  XCircle,
+  Shield,
+  UserX,
+  UserCheck,
+  Mail,
+  Building2,
   Clock,
-  Star,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
 
-interface BusinessWithStats {
-  id: string;
-  name: string;
-  slug: string;
-  email: string | null;
-  phone: string | null;
-  logo: string | null;
-  city: string | null;
-  country: string | null;
-  category?: {
-    id: string;
-    name: string;
-  } | null;
-  status: string;
-  planType: string;
-  createdAt: Date;
-  updatedAt: Date;
-  _count: {
-    reviews: number;
-  };
-}
-
 interface SearchParams {
   search?: string;
+  role?: string;
   status?: string;
-  plan?: string;
-  category?: string;
+  joinedAfter?: string;
+  joinedBefore?: string;
   page?: string;
   limit?: string;
 }
 
-async function getBusinesses(searchParams: SearchParams) {
+interface UserWithCounts {
+  id: string;
+  name: string | null;
+  email: string;
+  image: string | null;
+  role: string;
+  emailVerified: Date | null;
+  createdAt: Date;
+  _count: {
+    businesses: number;
+    reviews: number;
+  };
+}
+
+async function getUsers(searchParams: SearchParams) {
   try {
     const page = parseInt(searchParams.page || "1");
     const limit = parseInt(searchParams.limit || "10");
@@ -74,24 +69,35 @@ async function getBusinesses(searchParams: SearchParams) {
       where.OR = [
         { name: { contains: searchParams.search, mode: "insensitive" } },
         { email: { contains: searchParams.search, mode: "insensitive" } },
-        { description: { contains: searchParams.search, mode: "insensitive" } },
       ];
     }
 
-    if (searchParams.status) {
-      where.status = searchParams.status;
+    if (searchParams.role) {
+      where.role = searchParams.role;
     }
 
-    if (searchParams.plan) {
-      where.planType = searchParams.plan;
+    if (searchParams.status === "verified") {
+      where.emailVerified = { not: null };
+    } else if (searchParams.status === "unverified") {
+      where.emailVerified = null;
     }
 
-    if (searchParams.category) {
-      where.category = { equals: searchParams.category, mode: "insensitive" };
+    if (searchParams.joinedAfter) {
+      where.createdAt = {
+        ...((where.createdAt as Record<string, unknown>) || {}),
+        gte: new Date(searchParams.joinedAfter),
+      };
     }
 
-    const [businesses, totalCount] = await Promise.all([
-      prisma.business.findMany({
+    if (searchParams.joinedBefore) {
+      where.createdAt = {
+        ...((where.createdAt as Record<string, unknown>) || {}),
+        lte: new Date(searchParams.joinedBefore),
+      };
+    }
+
+    const [users, totalCount] = await Promise.all([
+      prisma.user.findMany({
         where,
         orderBy: { createdAt: "desc" },
         skip: offset,
@@ -99,31 +105,26 @@ async function getBusinesses(searchParams: SearchParams) {
         select: {
           id: true,
           name: true,
-          slug: true,
           email: true,
-          phone: true,
-          category: true,
-          city: true,
-          country: true,
-          status: true,
-          planType: true,
-          logo: true,
+          image: true,
+          role: true,
+          emailVerified: true,
           createdAt: true,
-          updatedAt: true,
           _count: {
             select: {
+              businesses: true,
               reviews: true,
             },
           },
         },
       }),
-      prisma.business.count({ where }),
+      prisma.user.count({ where }),
     ]);
 
     const totalPages = Math.ceil(totalCount / limit);
 
     return {
-      businesses,
+      users,
       pagination: {
         page,
         limit,
@@ -134,9 +135,9 @@ async function getBusinesses(searchParams: SearchParams) {
       },
     };
   } catch (error) {
-    console.error("Error fetching businesses:", error);
+    console.error("Error fetching users:", error);
     return {
-      businesses: [],
+      users: [],
       pagination: {
         page: 1,
         limit: 10,
@@ -149,61 +150,76 @@ async function getBusinesses(searchParams: SearchParams) {
   }
 }
 
-export async function BusinessTable({
+export async function UserTable({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
-  const { businesses, pagination } = await getBusinesses(searchParams);
+  const { users, pagination } = await getUsers(searchParams);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "ACTIVE":
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case "ADMIN":
         return (
-          <Badge variant="default" className="bg-green-100 text-green-800">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Active
+          <Badge className="bg-red-100 text-red-800">
+            <Shield className="h-3 w-3 mr-1" />
+            Admin
           </Badge>
         );
-      case "PENDING":
+      case "BUSINESS_OWNER":
         return (
-          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-            <Clock className="h-3 w-3 mr-1" />
-            Pending
+          <Badge className="bg-blue-100 text-blue-800">
+            <Building2 className="h-3 w-3 mr-1" />
+            Business Owner
+          </Badge>
+        );
+      case "USER":
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800">
+            <UserCheck className="h-3 w-3 mr-1" />
+            User
           </Badge>
         );
       case "SUSPENDED":
         return (
           <Badge variant="destructive">
-            <XCircle className="h-3 w-3 mr-1" />
+            <UserX className="h-3 w-3 mr-1" />
             Suspended
           </Badge>
         );
-      case "REJECTED":
-        return (
-          <Badge variant="outline" className="text-red-600 border-red-200">
-            <XCircle className="h-3 w-3 mr-1" />
-            Rejected
-          </Badge>
-        );
+      case "VISITOR":
+        return <Badge variant="secondary">Visitor</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return <Badge variant="outline">{role}</Badge>;
     }
   };
 
-  const getPlanBadge = (planType: string) => {
-    switch (planType) {
-      case "VIP":
-        return <Badge className="bg-yellow-500 text-white">VIP</Badge>;
-      case "PRO":
-        return <Badge className="bg-blue-500 text-white">Pro</Badge>;
-      case "BASIC":
-        return <Badge variant="outline">Basic</Badge>;
-      case "FREE_TRIAL":
-        return <Badge variant="secondary">Trial</Badge>;
-      default:
-        return <Badge variant="secondary">{planType}</Badge>;
+  const getEmailStatusBadge = (emailVerified: Date | null) => {
+    if (emailVerified) {
+      return (
+        <Badge variant="default" className="bg-green-100 text-green-800">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Verified
+        </Badge>
+      );
     }
+    return (
+      <Badge variant="outline" className="text-orange-600 border-orange-200">
+        <AlertCircle className="h-3 w-3 mr-1" />
+        Unverified
+      </Badge>
+    );
+  };
+
+  const getUserInitials = (name: string | null, email: string) => {
+    if (name) {
+      return name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase();
+    }
+    return email[0].toUpperCase();
   };
 
   return (
@@ -211,7 +227,7 @@ export async function BusinessTable({
       {/* Results Summary */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500">
-          Showing {businesses.length} of {pagination.totalCount} businesses
+          Showing {users.length} of {pagination.totalCount} users
         </p>
         <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-500">
@@ -225,80 +241,81 @@ export async function BusinessTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Business</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Plan</TableHead>
-              <TableHead>Rating</TableHead>
-              <TableHead>Created</TableHead>
+              <TableHead>User</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Email Status</TableHead>
+              <TableHead>Activity</TableHead>
+              <TableHead>Joined</TableHead>
+              <TableHead>Registered</TableHead>
               <TableHead className="w-[70px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {businesses.length > 0 ? (
-              businesses.map((business: BusinessWithStats) => (
-                <TableRow key={business.id}>
-                  {/* Business Info */}
+            {users.length > 0 ? (
+              users.map((user: UserWithCounts) => (
+                <TableRow key={user.id}>
+                  {/* User Info */}
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={business.logo || undefined} />
+                        <AvatarImage src={user.image || undefined} />
                         <AvatarFallback className="bg-gray-100">
-                          {business.name.substring(0, 2).toUpperCase()}
+                          {getUserInitials(user.name, user.email)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="font-medium text-gray-900">
-                          {business.name}
+                          {user.name || "No name"}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {business.category?.name || "Uncategorized"}
+                          {user.email}
                         </div>
                       </div>
                     </div>
                   </TableCell>
 
-                  {/* Contact */}
+                  {/* Role */}
+                  <TableCell>{getRoleBadge(user.role)}</TableCell>
+
+                  {/* Email Status */}
+                  <TableCell>
+                    {getEmailStatusBadge(user.emailVerified)}
+                  </TableCell>
+
+                  {/* Activity */}
                   <TableCell>
                     <div className="text-sm">
-                      <div className="text-gray-900">{business.email}</div>
-                      {business.phone && (
-                        <div className="text-gray-500">{business.phone}</div>
-                      )}
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-1">
+                          <Building2 className="h-3 w-3 text-gray-400" />
+                          <span className="text-gray-600">
+                            {user._count.businesses}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Mail className="h-3 w-3 text-gray-400" />
+                          <span className="text-gray-600">
+                            {user._count.reviews}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </TableCell>
 
-                  {/* Location */}
-                  <TableCell>
-                    <div className="text-sm text-gray-900">
-                      {[business.city, business.country]
-                        .filter(Boolean)
-                        .join(", ")}
-                    </div>
-                  </TableCell>
-
-                  {/* Status */}
-                  <TableCell>{getStatusBadge(business.status)}</TableCell>
-
-                  {/* Plan */}
-                  <TableCell>{getPlanBadge(business.planType)}</TableCell>
-
-                  {/* Rating */}
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="text-sm font-medium">0.0</span>
-                      <span className="text-sm text-gray-500">
-                        ({business._count.reviews})
-                      </span>
-                    </div>
-                  </TableCell>
-
-                  {/* Created */}
+                  {/* Joined */}
                   <TableCell>
                     <div className="text-sm text-gray-500">
-                      {new Date(business.createdAt).toLocaleDateString()}
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </div>
+                  </TableCell>
+
+                  {/* Registration Date */}
+                  <TableCell>
+                    <div className="text-sm text-gray-500">
+                      <span className="flex items-center">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
                   </TableCell>
 
@@ -314,22 +331,27 @@ export async function BusinessTable({
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <Link href={`/l/${business.slug}`} target="_blank">
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Public
+                          <Link href={`/admin/users/${user.id}/edit`}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit User
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/admin/businesses/${business.id}/edit`}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </Link>
+                        <DropdownMenuItem>
+                          <Shield className="h-4 w-4 mr-2" />
+                          Change Role
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
+                        {user.role !== "SUSPENDED" ? (
+                          <DropdownMenuItem className="text-orange-600">
+                            <UserX className="h-4 w-4 mr-2" />
+                            Suspend User
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem className="text-green-600">
+                            <UserCheck className="h-4 w-4 mr-2" />
+                            Restore User
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -337,9 +359,9 @@ export async function BusinessTable({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
+                <TableCell colSpan={7} className="text-center py-8">
                   <div className="text-gray-500">
-                    No businesses found. Try adjusting your filters.
+                    No users found. Try adjusting your filters.
                   </div>
                 </TableCell>
               </TableRow>
@@ -369,7 +391,7 @@ export async function BusinessTable({
               {pagination.hasPrev ? (
                 <Link
                   href={{
-                    pathname: "/admin/businesses",
+                    pathname: "/admin/users",
                     query: { ...searchParams, page: pagination.page - 1 },
                   }}
                 >
@@ -388,7 +410,7 @@ export async function BusinessTable({
               {pagination.hasNext ? (
                 <Link
                   href={{
-                    pathname: "/admin/businesses",
+                    pathname: "/admin/users",
                     query: { ...searchParams, page: pagination.page + 1 },
                   }}
                 >

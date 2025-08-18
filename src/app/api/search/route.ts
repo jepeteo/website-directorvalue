@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 
+interface PrismaOrderBy {
+  averageRating?: 'asc' | 'desc';
+  totalReviews?: 'asc' | 'desc';
+  createdAt?: 'asc' | 'desc';
+  name?: 'asc' | 'desc';
+  planType?: 'asc' | 'desc';
+  [key: string]: 'asc' | 'desc' | undefined;
+}
+
 const searchParamsSchema = z.object({
   query: z.string().optional(),
   category: z.string().optional(),
@@ -40,7 +49,8 @@ export async function GET(request: NextRequest) {
     const offset = (params.page - 1) * params.limit
 
     // Build where clause
-    const where: any = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: Record<string, any> = {
       status: 'ACTIVE',
     }
 
@@ -61,7 +71,7 @@ export async function GET(request: NextRequest) {
     // Location filters
     if (params.location) {
       where.OR = where.OR || []
-      where.OR.push(
+      ;(where.OR as Array<Record<string, unknown>>).push(
         { country: { contains: params.location, mode: 'insensitive' } },
         { city: { contains: params.location, mode: 'insensitive' } },
         { address: { contains: params.location, mode: 'insensitive' } }
@@ -110,7 +120,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build orderBy clause
-    let orderBy: any = []
+    let orderBy: PrismaOrderBy[] = []
 
     switch (params.sortBy) {
       case 'rating':
@@ -160,17 +170,14 @@ export async function GET(request: NextRequest) {
           slug: true,
           description: true,
           category: true,
-          address: true,
+          addressLine1: true,
           city: true,
           country: true,
           phone: true,
           email: true,
           website: true,
-          logoUrl: true,
-          averageRating: true,
-          totalReviews: true,
+          logo: true,
           planType: true,
-          priceRange: true,
           tags: true,
           status: true,
           createdAt: true,
