@@ -21,8 +21,8 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    session: async ({ session, user }) => {
-      if (session?.user) {
+    session: async ({ session, user }: { session: any; user: any }) => {
+      if (session?.user && user?.id) {
         session.user.id = user.id
         // Get user role from database
         const dbUser = await prisma.user.findUnique({
@@ -54,12 +54,3 @@ declare module 'next-auth' {
     }
   }
 }
-
-// Create auth instance
-const handler = NextAuth(authOptions)
-
-// Export for App Router
-export { handler as GET, handler as POST }
-
-// Export auth function for server components
-export const auth = () => handler.auth
