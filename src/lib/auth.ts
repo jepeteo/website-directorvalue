@@ -1,5 +1,6 @@
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import EmailProvider from 'next-auth/providers/email'
+import NextAuth from 'next-auth'
 import { prisma } from '@/lib/prisma'
 
 export const authOptions = {
@@ -41,6 +42,8 @@ export const authOptions = {
     strategy: 'database' as const,
   },
 }
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authOptions)
 
 declare module 'next-auth' {
   interface Session {
