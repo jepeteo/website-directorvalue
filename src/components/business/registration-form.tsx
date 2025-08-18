@@ -22,7 +22,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Phone, Mail, Globe, Clock } from "lucide-react";
+import { Loader2, MapPin, Phone, Clock } from "lucide-react";
 
 interface BusinessFormData {
   name: string;

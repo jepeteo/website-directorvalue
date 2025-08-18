@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { BusinessRegistrationForm } from "@/components/business/registration-form";
 
 export const metadata: Metadata = {
