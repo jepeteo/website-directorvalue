@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { UserMenu } from "@/components/auth/user-menu";
 
 export function Header() {
   return (
@@ -43,9 +43,7 @@ export function Header() {
             <Link href="/pricing" className="text-gray-600 hover:text-gray-900">
               Pricing
             </Link>
-            <Button asChild>
-              <Link href="/dashboard">Add Your Business</Link>
-            </Button>
+            <UserMenu />
           </nav>
 
           {/* Mobile menu button - TODO: Implement mobile menu */}

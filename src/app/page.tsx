@@ -31,7 +31,8 @@ export default async function HomePage() {
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
               Discover trusted businesses and services in your area. Connect
-              with local professionals and find exactly what you're looking for.
+              with local professionals and find exactly what you&apos;re looking
+              for.
             </p>
           </div>
 

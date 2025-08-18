@@ -1,21 +1,23 @@
-import { NextAuthOptions } from 'next-auth'
-import { PrismaAdapter } from '@next-auth/prisma-adapter'
+import NextAuth from 'next-auth'
+import { PrismaAdapter } from '@auth/prisma-adapter'
 import EmailProvider from 'next-auth/providers/email'
 import { prisma } from '@/lib/prisma'
 
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     EmailProvider({
-      server: {
+      // For development, we'll use a simple console log
+      // In production, this should use Resend or another email service
+      server: process.env.EMAIL_SERVER_HOST ? {
         host: process.env.EMAIL_SERVER_HOST,
-        port: process.env.EMAIL_SERVER_PORT,
+        port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
         auth: {
           user: process.env.EMAIL_SERVER_USER,
           pass: process.env.EMAIL_SERVER_PASSWORD,
         },
-      },
-      from: process.env.EMAIL_FROM,
+      } : undefined,
+      from: process.env.EMAIL_FROM || 'noreply@directorvalue.com',
     }),
   ],
   callbacks: {
@@ -37,7 +39,7 @@ export const authOptions: NextAuthOptions = {
     verifyRequest: '/auth/verify-request',
   },
   session: {
-    strategy: 'database',
+    strategy: 'database' as const,
   },
 }
 
@@ -52,3 +54,12 @@ declare module 'next-auth' {
     }
   }
 }
+
+// Create auth instance
+const handler = NextAuth(authOptions)
+
+// Export for App Router
+export { handler as GET, handler as POST }
+
+// Export auth function for server components
+export const auth = () => handler.auth
