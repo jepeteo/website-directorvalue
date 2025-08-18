@@ -86,12 +86,17 @@ export function SearchForm({ className, size = "default" }: SearchFormProps) {
             <label htmlFor="category" className="text-sm font-medium">
               Category
             </label>
-            <Select value={category} onValueChange={setCategory}>
+            <Select
+              value={category || "all"}
+              onValueChange={(value) =>
+                setCategory(value === "all" ? "" : value)
+              }
+            >
               <SelectTrigger className={isLarge ? "h-12" : ""}>
                 <SelectValue placeholder="All categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All categories</SelectItem>
+                <SelectItem value="all">All categories</SelectItem>
                 {CATEGORIES.map((cat) => (
                   <SelectItem key={cat} value={cat}>
                     {cat}

@@ -280,12 +280,17 @@ export function SearchResults() {
                   {/* Category */}
                   <div>
                     <Label htmlFor="filter-category">Category</Label>
-                    <Select value={category} onValueChange={setCategory}>
+                    <Select
+                      value={category || "all"}
+                      onValueChange={(value) =>
+                        setCategory(value === "all" ? "" : value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="All categories" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All categories</SelectItem>
+                        <SelectItem value="all">All categories</SelectItem>
                         {CATEGORIES.map((cat) => (
                           <SelectItem key={cat} value={cat}>
                             {cat}
@@ -298,12 +303,17 @@ export function SearchResults() {
                   {/* Country */}
                   <div>
                     <Label htmlFor="filter-country">Country</Label>
-                    <Select value={country} onValueChange={setCountry}>
+                    <Select
+                      value={country || "all"}
+                      onValueChange={(value) =>
+                        setCountry(value === "all" ? "" : value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="All countries" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All countries</SelectItem>
+                        <SelectItem value="all">All countries</SelectItem>
                         {COUNTRIES.map((c) => (
                           <SelectItem key={c} value={c}>
                             {c}
@@ -316,12 +326,17 @@ export function SearchResults() {
                   {/* Min Rating */}
                   <div>
                     <Label htmlFor="filter-rating">Min Rating</Label>
-                    <Select value={minRating} onValueChange={setMinRating}>
+                    <Select
+                      value={minRating || "any"}
+                      onValueChange={(value) =>
+                        setMinRating(value === "any" ? "" : value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Any rating" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Any rating</SelectItem>
+                        <SelectItem value="any">Any rating</SelectItem>
                         <SelectItem value="4">4+ stars</SelectItem>
                         <SelectItem value="3">3+ stars</SelectItem>
                         <SelectItem value="2">2+ stars</SelectItem>

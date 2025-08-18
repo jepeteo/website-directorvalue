@@ -75,12 +75,15 @@ export function ReviewFilters() {
           {/* Rating Filter */}
           <div className="space-y-2">
             <Label>Rating</Label>
-            <Select value={rating} onValueChange={setRating}>
+            <Select
+              value={rating || "all"}
+              onValueChange={(value) => setRating(value === "all" ? "" : value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="All ratings" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All ratings</SelectItem>
+                <SelectItem value="all">All ratings</SelectItem>
                 <SelectItem value="5">
                   <div className="flex items-center">
                     <Star className="h-4 w-4 mr-2 fill-yellow-400 text-yellow-400" />
@@ -118,12 +121,15 @@ export function ReviewFilters() {
           {/* Status Filter */}
           <div className="space-y-2">
             <Label>Status</Label>
-            <Select value={status} onValueChange={setStatus}>
+            <Select
+              value={status || "all"}
+              onValueChange={(value) => setStatus(value === "all" ? "" : value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All statuses</SelectItem>
+                <SelectItem value="all">All statuses</SelectItem>
                 <SelectItem value="PENDING">Pending</SelectItem>
                 <SelectItem value="APPROVED">Approved</SelectItem>
                 <SelectItem value="FLAGGED">Flagged</SelectItem>

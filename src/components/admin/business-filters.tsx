@@ -66,12 +66,15 @@ export function BusinessFilters() {
         {/* Status */}
         <div className="space-y-2">
           <Label htmlFor="status">Status</Label>
-          <Select value={status} onValueChange={setStatus}>
+          <Select
+            value={status || "all"}
+            onValueChange={(value) => setStatus(value === "all" ? "" : value)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All statuses</SelectItem>
+              <SelectItem value="all">All statuses</SelectItem>
               <SelectItem value="ACTIVE">Active</SelectItem>
               <SelectItem value="PENDING">Pending</SelectItem>
               <SelectItem value="SUSPENDED">Suspended</SelectItem>
@@ -83,12 +86,15 @@ export function BusinessFilters() {
         {/* Plan */}
         <div className="space-y-2">
           <Label htmlFor="plan">Plan</Label>
-          <Select value={plan} onValueChange={setPlan}>
+          <Select
+            value={plan || "all"}
+            onValueChange={(value) => setPlan(value === "all" ? "" : value)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="All plans" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All plans</SelectItem>
+              <SelectItem value="all">All plans</SelectItem>
               <SelectItem value="FREE_TRIAL">Free Trial</SelectItem>
               <SelectItem value="BASIC">Basic</SelectItem>
               <SelectItem value="PRO">Pro</SelectItem>
@@ -100,12 +106,15 @@ export function BusinessFilters() {
         {/* Category */}
         <div className="space-y-2">
           <Label htmlFor="category">Category</Label>
-          <Select value={category} onValueChange={setCategory}>
+          <Select
+            value={category || "all"}
+            onValueChange={(value) => setCategory(value === "all" ? "" : value)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="All categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All categories</SelectItem>
+              <SelectItem value="all">All categories</SelectItem>
               <SelectItem value="Technology">Technology</SelectItem>
               <SelectItem value="Healthcare">Healthcare</SelectItem>
               <SelectItem value="Education">Education</SelectItem>

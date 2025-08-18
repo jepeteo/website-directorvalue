@@ -74,12 +74,15 @@ export function UserFilters() {
         {/* Role */}
         <div className="space-y-2">
           <Label htmlFor="role">Role</Label>
-          <Select value={role} onValueChange={setRole}>
+          <Select
+            value={role || "all"}
+            onValueChange={(value) => setRole(value === "all" ? "" : value)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="All roles" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All roles</SelectItem>
+              <SelectItem value="all">All roles</SelectItem>
               <SelectItem value="ADMIN">Admin</SelectItem>
               <SelectItem value="BUSINESS_OWNER">Business Owner</SelectItem>
               <SelectItem value="USER">User</SelectItem>
@@ -92,12 +95,15 @@ export function UserFilters() {
         {/* Email Verification Status */}
         <div className="space-y-2">
           <Label htmlFor="status">Email Status</Label>
-          <Select value={status} onValueChange={setStatus}>
+          <Select
+            value={status || "all"}
+            onValueChange={(value) => setStatus(value === "all" ? "" : value)}
+          >
             <SelectTrigger>
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All statuses</SelectItem>
+              <SelectItem value="all">All statuses</SelectItem>
               <SelectItem value="verified">Verified</SelectItem>
               <SelectItem value="unverified">Unverified</SelectItem>
             </SelectContent>
