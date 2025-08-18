@@ -16,6 +16,18 @@ export const metadata: Metadata = {
   title: "Director Value - Everything you need worldwide",
   description:
     "Find and discover local businesses worldwide. Everything you need worldwide - Director Value business directory.",
+  icons: {
+    icon: "/directorvalue-logo.webp",
+    shortcut: "/directorvalue-logo.webp",
+    apple: "/directorvalue-logo.webp",
+  },
+  manifest: "/manifest.json",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#2563eb",
 };
 
 export default function RootLayout({

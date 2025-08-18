@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
@@ -6,8 +8,14 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <div className="text-white font-bold text-sm">DV</div>
+              <div className="w-10 h-10 relative">
+                <Image
+                  src="/directorvalue-logo.webp"
+                  alt="Director Value Logo"
+                  fill
+                  className="object-contain"
+                  priority
+                />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">
@@ -491,8 +499,13 @@ export default function HomePage() {
             {/* Brand Section */}
             <div className="lg:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <div className="text-white font-bold text-sm">DV</div>
+                <div className="w-10 h-10 relative">
+                  <Image
+                    src="/directorvalue-logo.webp"
+                    alt="Director Value Logo"
+                    fill
+                    className="object-contain"
+                  />
                 </div>
                 <div>
                   <h4 className="font-bold text-white text-lg">
