@@ -3,8 +3,6 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 
 interface PrismaOrderBy {
-  averageRating?: 'asc' | 'desc';
-  totalReviews?: 'asc' | 'desc';
   createdAt?: 'asc' | 'desc';
   name?: 'asc' | 'desc';
   planType?: 'asc' | 'desc';
@@ -12,19 +10,19 @@ interface PrismaOrderBy {
 }
 
 const searchParamsSchema = z.object({
-  query: z.string().optional(),
-  category: z.string().optional(),
-  location: z.string().optional(),
-  country: z.string().optional(),
-  city: z.string().optional(),
-  minRating: z.coerce.number().min(1).max(5).optional(),
-  minPrice: z.coerce.number().min(0).optional(),
-  maxPrice: z.coerce.number().min(0).optional(),
-  openNow: z.coerce.boolean().optional(),
-  tags: z.string().optional(), // Comma-separated tags
-  sortBy: z.enum(['relevance', 'rating', 'reviews', 'newest', 'vip']).default('relevance'),
-  page: z.coerce.number().min(1).default(1),
-  limit: z.coerce.number().min(1).max(50).default(12),
+  query: z.string().optional().nullable().transform(val => val || undefined),
+  category: z.string().optional().nullable().transform(val => val || undefined),
+  location: z.string().optional().nullable().transform(val => val || undefined),
+  country: z.string().optional().nullable().transform(val => val || undefined),
+  city: z.string().optional().nullable().transform(val => val || undefined),
+  minRating: z.string().optional().nullable().transform(val => val ? parseFloat(val) : undefined).pipe(z.number().min(1).max(5).optional()),
+  minPrice: z.string().optional().nullable().transform(val => val ? parseFloat(val) : undefined).pipe(z.number().min(0).optional()),
+  maxPrice: z.string().optional().nullable().transform(val => val ? parseFloat(val) : undefined).pipe(z.number().min(0).optional()),
+  openNow: z.string().optional().nullable().transform(val => val === 'true'),
+  tags: z.string().optional().nullable().transform(val => val || undefined), // Comma-separated tags
+  sortBy: z.string().optional().nullable().transform(val => val || 'relevance').pipe(z.enum(['relevance', 'rating', 'reviews', 'newest', 'vip'])),
+  page: z.string().optional().nullable().transform(val => val ? parseInt(val) : 1).pipe(z.number().min(1)),
+  limit: z.string().optional().nullable().transform(val => val ? parseInt(val) : 12).pipe(z.number().min(1).max(50)),
 })
 
 export async function GET(request: NextRequest) {
@@ -65,7 +63,9 @@ export async function GET(request: NextRequest) {
 
     // Category filter
     if (params.category) {
-      where.category = { equals: params.category, mode: 'insensitive' }
+      where.category = { 
+        name: { equals: params.category, mode: 'insensitive' }
+      }
     }
 
     // Location filters
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
       ;(where.OR as Array<Record<string, unknown>>).push(
         { country: { contains: params.location, mode: 'insensitive' } },
         { city: { contains: params.location, mode: 'insensitive' } },
-        { address: { contains: params.location, mode: 'insensitive' } }
+        { addressLine1: { contains: params.location, mode: 'insensitive' } }
       )
     }
 
@@ -86,21 +86,23 @@ export async function GET(request: NextRequest) {
       where.city = { equals: params.city, mode: 'insensitive' }
     }
 
-    // Rating filter (only include businesses with rating >= minRating)
-    if (params.minRating) {
-      where.averageRating = { gte: params.minRating }
-    }
+    // Rating filter - remove this since we don't have averageRating field
+    // TODO: Calculate rating from reviews if needed
+    // if (params.minRating) {
+    //   where.averageRating = { gte: params.minRating }
+    // }
 
-    // Price range filters
-    if (params.minPrice !== undefined || params.maxPrice !== undefined) {
-      where.priceRange = {}
-      if (params.minPrice !== undefined) {
-        where.priceRange.gte = params.minPrice
-      }
-      if (params.maxPrice !== undefined) {
-        where.priceRange.lte = params.maxPrice
-      }
-    }
+    // Price range filters - remove this since we don't have priceRange field
+    // TODO: Add priceRange field to schema if needed
+    // if (params.minPrice !== undefined || params.maxPrice !== undefined) {
+    //   where.priceRange = {}
+    //   if (params.minPrice !== undefined) {
+    //     where.priceRange.gte = params.minPrice
+    //   }
+    //   if (params.maxPrice !== undefined) {
+    //     where.priceRange.lte = params.maxPrice
+    //   }
+    // }
 
     // Tags filter (if any of the provided tags match)
     if (params.tags) {
@@ -124,15 +126,15 @@ export async function GET(request: NextRequest) {
 
     switch (params.sortBy) {
       case 'rating':
+        // TODO: Add rating calculation from reviews
         orderBy = [
-          { averageRating: 'desc' },
-          { totalReviews: 'desc' },
+          { createdAt: 'desc' },
         ]
         break
       case 'reviews':
+        // TODO: Add review count from reviews relation
         orderBy = [
-          { totalReviews: 'desc' },
-          { averageRating: 'desc' },
+          { createdAt: 'desc' },
         ]
         break
       case 'newest':
@@ -141,17 +143,14 @@ export async function GET(request: NextRequest) {
       case 'vip':
         orderBy = [
           { planType: 'desc' }, // VIP > PRO > BASIC > TRIAL
-          { averageRating: 'desc' },
-          { totalReviews: 'desc' },
+          { createdAt: 'desc' },
         ]
         break
       case 'relevance':
       default:
-        // For relevance, we'll boost VIP, then by rating and reviews
+        // For relevance, we'll boost VIP, then by creation date
         orderBy = [
           { planType: 'desc' },
-          { averageRating: 'desc' },
-          { totalReviews: 'desc' },
           { createdAt: 'desc' },
         ]
         break
@@ -169,7 +168,12 @@ export async function GET(request: NextRequest) {
           name: true,
           slug: true,
           description: true,
-          category: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           addressLine1: true,
           city: true,
           country: true,
@@ -181,6 +185,11 @@ export async function GET(request: NextRequest) {
           tags: true,
           status: true,
           createdAt: true,
+          _count: {
+            select: {
+              reviews: true,
+            },
+          },
         },
       }),
       prisma.business.count({ where }),
