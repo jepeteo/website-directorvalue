@@ -47,6 +47,18 @@ export default async function DashboardPage() {
               <div className="space-y-3">
                 <div>
                   <a
+                    href="/dashboard/business/add"
+                    className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="font-medium">Add Your Business</div>
+                    <div className="text-sm text-muted-foreground">
+                      Register your business on the platform
+                    </div>
+                  </a>
+                </div>
+
+                <div>
+                  <a
                     href="/dashboard/business"
                     className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors"
                   >
