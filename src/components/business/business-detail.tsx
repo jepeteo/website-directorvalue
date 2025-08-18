@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,6 +10,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ReviewForm } from "@/components/reviews/review-form";
+import { ReviewsList } from "@/components/reviews/reviews-list";
 import {
   MapPin,
   Phone,
@@ -60,11 +65,17 @@ interface BusinessDetailProps {
 }
 
 export function BusinessDetail({ business }: BusinessDetailProps) {
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   const averageRating =
     business.reviews.length > 0
       ? business.reviews.reduce((sum, review) => sum + review.rating, 0) /
         business.reviews.length
       : 0;
+
+  const handleReviewSubmitted = () => {
+    setRefreshTrigger((prev) => prev + 1);
+  };
 
   const formatHours = (hours: any) => {
     if (!hours) return {};
@@ -186,56 +197,18 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
             )}
 
             {/* Reviews Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5" />
-                  Customer Reviews
-                </CardTitle>
-                <CardDescription>
-                  {business._count.reviews} reviews with an average rating of{" "}
-                  {averageRating.toFixed(1)} stars
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {business.reviews.length > 0 ? (
-                  <div className="space-y-6">
-                    {business.reviews.map((review) => (
-                      <div key={review.id} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">
-                              {review.user.name || "Anonymous"}
-                            </span>
-                            <div className="flex items-center">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`h-4 w-4 ${
-                                    i < review.rating
-                                      ? "fill-yellow-400 text-yellow-400"
-                                      : "text-gray-300"
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                          <span className="text-sm text-muted-foreground">
-                            {new Date(review.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <p className="text-gray-600">{review.comment}</p>
-                        <div className="border-t my-4" />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No reviews yet. Be the first to leave a review!
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <ReviewsList
+              businessId={business.id}
+              initialReviews={business.reviews}
+              refreshTrigger={refreshTrigger}
+            />
+
+            {/* Review Form */}
+            <ReviewForm
+              businessId={business.id}
+              businessName={business.name}
+              onReviewSubmitted={handleReviewSubmitted}
+            />
           </div>
 
           {/* Sidebar */}
