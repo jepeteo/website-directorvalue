@@ -1,0 +1,248 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth.js schema
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// User and Business models
+enum UserRole {
+  VISITOR
+  BUSINESS_OWNER
+  ADMIN
+  MODERATOR
+  FINANCE
+  SUPPORT
+}
+
+enum PlanType {
+  FREE_TRIAL
+  BASIC
+  PRO
+  VIP
+}
+
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  DEACTIVATED
+  SUSPENDED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(VISITOR)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts  Account[]
+  sessions  Session[]
+  businesses Business[]
+  reviews   Review[]
+  abuseReports AbuseReport[]
+}
+
+model Business {
+  id          String        @id @default(cuid())
+  name        String
+  slug        String        @unique
+  description String?       @db.Text
+  
+  // Contact Info
+  email       String?
+  phone       String?
+  website     String?
+  
+  // Address
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  state        String?
+  postalCode   String?
+  country      String?
+  latitude     Float?
+  longitude    Float?
+  
+  // Business Details
+  logo         String?
+  images       String[]
+  services     String[]
+  tags         String[]
+  
+  // Hours (JSON format: {"monday": {"open": "09:00", "close": "17:00"}, ...})
+  workingHours Json?
+  
+  // Plan and Status
+  planType     PlanType      @default(FREE_TRIAL)
+  status       ListingStatus @default(DRAFT)
+  
+  // Billing
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  trialEndsAt          DateTime?
+  
+  // Metadata
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  ownerId      String
+  categoryId   String?
+  
+  // Relations
+  owner        User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  category     Category?  @relation(fields: [categoryId], references: [id])
+  reviews      Review[]
+  leads        Lead[]
+  abuseReports AbuseReport[]
+  
+  @@index([status])
+  @@index([planType])
+  @@index([categoryId])
+  @@index([city])
+  @@index([country])
+}
+
+model Category {
+  id          String @id @default(cuid())
+  name        String
+  slug        String @unique
+  description String?
+  icon        String?
+  parentId    String?
+  sortOrder   Int    @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  businesses  Business[]
+  
+  @@index([parentId])
+  @@index([slug])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      // 1-5 stars
+  title     String?
+  content   String?  @db.Text
+  isHidden  Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  businessId String
+  userId     String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  abuseReports AbuseReport[]
+  
+  @@index([businessId])
+  @@index([rating])
+  @@index([isHidden])
+}
+
+enum AbuseReportType {
+  SPAM
+  INAPPROPRIATE_CONTENT
+  FAKE_REVIEW
+  HARASSMENT
+  COPYRIGHT
+  OTHER
+}
+
+enum AbuseReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
+
+model AbuseReport {
+  id          String            @id @default(cuid())
+  type        AbuseReportType
+  reason      String            @db.Text
+  status      AbuseReportStatus @default(PENDING)
+  adminNotes  String?           @db.Text
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  reporterId  String
+  businessId  String?
+  reviewId    String?
+  
+  reporter    User      @relation(fields: [reporterId], references: [id])
+  business    Business? @relation(fields: [businessId], references: [id])
+  review      Review?   @relation(fields: [reviewId], references: [id])
+  
+  @@index([status])
+  @@index([type])
+}
+
+model Lead {
+  id         String   @id @default(cuid())
+  name       String
+  email      String
+  phone      String?
+  message    String   @db.Text
+  source     String   // "contact_form", "vip_relay", etc.
+  
+  createdAt  DateTime @default(now())
+  
+  // Relations
+  businessId String?
+  business   Business? @relation(fields: [businessId], references: [id])
+  
+  @@index([businessId])
+  @@index([source])
+}
