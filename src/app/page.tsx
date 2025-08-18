@@ -4,103 +4,19 @@ import { SearchForm } from "@/components/search/search-form";
 import { BusinessCard } from "@/components/business/business-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { getBusinesses, getCategories, getBusinessStats } from "@/lib/db";
 import Link from "next/link";
 
-// Mock data for demonstration
-const featuredBusinesses = [
-  {
-    id: "1",
-    name: "Bella Vista Restaurant",
-    slug: "bella-vista-restaurant",
-    description:
-      "Authentic Italian cuisine with a modern twist. Fresh pasta made daily and the finest ingredients imported from Italy.",
-    logo: null,
-    category: "restaurants",
-    city: "Paris",
-    country: "France",
-    planType: "VIP" as const,
-    rating: 4.8,
-    reviewCount: 127,
-    isOpen: true,
-  },
-  {
-    id: "2",
-    name: "TechFix Solutions",
-    slug: "techfix-solutions",
-    description:
-      "Professional computer repair and IT support services for businesses and individuals. Same-day service available.",
-    logo: null,
-    category: "technology",
-    city: "London",
-    country: "United Kingdom",
-    planType: "PRO" as const,
-    rating: 4.6,
-    reviewCount: 89,
-    isOpen: true,
-  },
-  {
-    id: "3",
-    name: "Green Thumb Gardens",
-    slug: "green-thumb-gardens",
-    description:
-      "Complete landscaping and garden design services. Transform your outdoor space into a beautiful oasis.",
-    logo: null,
-    category: "home-garden",
-    city: "Berlin",
-    country: "Germany",
-    planType: "BASIC" as const,
-    rating: 4.4,
-    reviewCount: 56,
-    isOpen: false,
-  },
-];
+export default async function HomePage() {
+  // Fetch real data from database
+  const [businessesResult, categories, stats] = await Promise.all([
+    getBusinesses({ limit: 6 }), // Get top 6 businesses for featured section
+    getCategories(),
+    getBusinessStats(),
+  ]);
 
-const categories = [
-  {
-    name: "Restaurants",
-    slug: "restaurants",
-    icon: "🍽️",
-    count: "1,245",
-    description: "Fine dining, cafes, and local eateries",
-  },
-  {
-    name: "Professional Services",
-    slug: "professional-services",
-    icon: "💼",
-    count: "2,867",
-    description: "Legal, accounting, consulting services",
-  },
-  {
-    name: "Health & Medical",
-    slug: "health-medical",
-    icon: "🏥",
-    count: "1,892",
-    description: "Doctors, clinics, and wellness centers",
-  },
-  {
-    name: "Retail & Shopping",
-    slug: "retail-shopping",
-    icon: "🛍️",
-    count: "3,421",
-    description: "Stores, boutiques, and shopping centers",
-  },
-  {
-    name: "Home & Garden",
-    slug: "home-garden",
-    icon: "🏠",
-    count: "1,567",
-    description: "Contractors, landscaping, home improvement",
-  },
-  {
-    name: "Automotive",
-    slug: "automotive",
-    icon: "🚗",
-    count: "987",
-    description: "Car repair, dealerships, and services",
-  },
-];
+  const featuredBusinesses = businessesResult.businesses;
 
-export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -139,7 +55,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {categories.map((category) => (
+            {categories.slice(0, 6).map((category: any) => (
               <Link
                 key={category.slug}
                 href={`/c/${category.slug}`}
@@ -153,7 +69,7 @@ export default function HomePage() {
                     </h3>
                     <p className="text-gray-600 mb-4">{category.description}</p>
                     <div className="text-blue-600 font-medium">
-                      {category.count} businesses
+                      {category.businessCount} businesses
                     </div>
                   </CardContent>
                 </Card>
@@ -174,25 +90,53 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Featured VIP Businesses
+              Featured Businesses
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Discover top-rated businesses that have earned our VIP status
-              through exceptional service.
+              Discover top-rated businesses that have earned recognition through
+              exceptional service.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredBusinesses.map((business) => (
-              <BusinessCard key={business.id} business={business} />
-            ))}
-          </div>
+          {featuredBusinesses.length > 0 ? (
+            <>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {featuredBusinesses.map((business: any) => (
+                  <BusinessCard
+                    key={business.id}
+                    business={{
+                      id: business.id,
+                      name: business.name,
+                      slug: business.slug,
+                      description: business.description,
+                      logo: business.logo,
+                      category: business.category?.name || "",
+                      city: business.city,
+                      country: business.country,
+                      planType: business.planType,
+                      rating: business.averageRating,
+                      reviewCount: business.reviewCount,
+                    }}
+                  />
+                ))}
+              </div>
 
-          <div className="text-center mt-12">
-            <Button asChild size="lg">
-              <Link href="/search">Browse All Businesses</Link>
-            </Button>
-          </div>
+              <div className="text-center mt-12">
+                <Button asChild size="lg">
+                  <Link href="/search">Browse All Businesses</Link>
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-16">
+              <p className="text-gray-600 mb-8">
+                No businesses found. Be the first to list your business!
+              </p>
+              <Button asChild size="lg">
+                <Link href="/dashboard">Add Your Business</Link>
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -223,23 +167,27 @@ export default function HomePage() {
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div>
               <div className="text-4xl font-bold text-blue-600 mb-2">
-                10,000+
+                {stats.activeBusinesses.toLocaleString()}+
               </div>
-              <div className="text-gray-600">Businesses Listed</div>
-            </div>
-            <div>
-              <div className="text-4xl font-bold text-blue-600 mb-2">150+</div>
-              <div className="text-gray-600">Countries Covered</div>
+              <div className="text-gray-600">Active Businesses</div>
             </div>
             <div>
               <div className="text-4xl font-bold text-blue-600 mb-2">
-                50,000+
+                {categories.length}+
               </div>
-              <div className="text-gray-600">Monthly Searches</div>
+              <div className="text-gray-600">Categories</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-blue-600 mb-2">4.8★</div>
-              <div className="text-gray-600">Average Rating</div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">
+                {stats.totalReviews.toLocaleString()}+
+              </div>
+              <div className="text-gray-600">Customer Reviews</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">
+                {stats.vipBusinesses}
+              </div>
+              <div className="text-gray-600">VIP Businesses</div>
             </div>
           </div>
         </div>
