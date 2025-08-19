@@ -267,9 +267,9 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
                           </span>
                         )}
                       </div>
-                      {review.comment && (
+                      {review.content && (
                         <p className="text-muted-foreground">
-                          {review.comment}
+                          {review.content}
                         </p>
                       )}
                     </div>

@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       businessId: validatedData.businessId,
       userId: token?.sub,
       rating: validatedData.rating,
-      comment: validatedData.comment,
+      content: validatedData.comment,
       title: validatedData.title,
     });
 

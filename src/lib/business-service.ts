@@ -1,6 +1,6 @@
 import { prisma } from './prisma';
 
-// Type definitions based on Prisma schema
+// Type definitions matching actual Prisma schema
 export interface Business {
   id: string;
   name: string;
@@ -23,11 +23,9 @@ export interface Business {
   tags: string[];
   workingHours?: Record<string, { open: string; close: string }> | null;
   planType: 'FREE_TRIAL' | 'BASIC' | 'PRO' | 'VIP';
-  status: 'DRAFT' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
-  rating: number;
-  reviewCount: number;
+  status: 'DRAFT' | 'ACTIVE' | 'DEACTIVATED' | 'SUSPENDED';
+  ownerId: string;
   categoryId?: string | null;
-  ownerId?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,10 +45,10 @@ export interface Review {
   id: string;
   rating: number;
   title?: string | null;
-  comment: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  content?: string | null;
+  isHidden: boolean;
   businessId: string;
-  userId?: string | null;
+  userId: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -59,16 +57,22 @@ export interface User {
   id: string;
   name?: string | null;
   email?: string | null;
-  role: 'VISITOR' | 'BUSINESS_OWNER' | 'ADMIN';
+  role: 'VISITOR' | 'BUSINESS_OWNER' | 'ADMIN' | 'MODERATOR' | 'FINANCE' | 'SUPPORT';
   createdAt: Date;
   updatedAt: Date;
 }
 
-export type BusinessWithCategory = Business & {
+// Extended types with calculated fields
+export interface BusinessWithRating extends Business {
+  rating: number;
+  reviewCount: number;
+}
+
+export type BusinessWithCategory = BusinessWithRating & {
   category: Category | null;
 };
 
-export type BusinessWithExtras = Business & {
+export type BusinessWithExtras = BusinessWithRating & {
   category: Category | null;
   reviews: Array<Review & { user: User | null }>;
   owner?: User | null;
@@ -78,11 +82,12 @@ export type ReviewWithUser = Review & {
   user: User | null;
 };
 
-interface SearchWhereCondition {
-  status: string;
-  AND?: Array<Record<string, unknown>>;
-  OR?: Array<Record<string, unknown>>;
-}
+// Prisma result types
+type PrismaBusinessWithReviews = {
+  reviews: { rating: number }[];
+  category: Category | null;
+  [key: string]: unknown;
+};
 
 // Search and filter functions
 export async function searchBusinesses({
@@ -103,13 +108,14 @@ export async function searchBusinesses({
   const skip = (page - 1) * limit;
 
   // Build where conditions
-  const where: SearchWhereCondition = {
+  const where: Record<string, unknown> = {
     status: 'ACTIVE',
-    AND: [],
   };
 
+  const andConditions: Record<string, unknown>[] = [];
+
   if (query) {
-    where.AND!.push({
+    andConditions.push({
       OR: [
         { name: { contains: query, mode: 'insensitive' } },
         { description: { contains: query, mode: 'insensitive' } },
@@ -120,11 +126,11 @@ export async function searchBusinesses({
   }
 
   if (categoryId) {
-    where.AND!.push({ categoryId });
+    andConditions.push({ categoryId });
   }
 
   if (location) {
-    where.AND!.push({
+    andConditions.push({
       OR: [
         { city: { contains: location, mode: 'insensitive' } },
         { state: { contains: location, mode: 'insensitive' } },
@@ -133,34 +139,24 @@ export async function searchBusinesses({
     });
   }
 
-  // Clean up empty AND array
-  if (where.AND!.length === 0) {
-    delete where.AND;
+  if (andConditions.length > 0) {
+    where.AND = andConditions;
   }
 
-type OrderByOption = 
-  | { rating: 'desc' | 'asc' }
-  | { createdAt: 'desc' | 'asc' }
-  | { reviewCount: 'desc' | 'asc' }
-  | { planType: 'desc' | 'asc' };
-
-  // Build orderBy
-  let orderBy: OrderByOption | OrderByOption[];
+  // Build orderBy - we'll calculate ratings in memory since they're not stored
+  let orderBy: Record<string, string>[];
   switch (sortBy) {
-    case 'rating':
-      orderBy = { rating: 'desc' };
-      break;
     case 'newest':
-      orderBy = { createdAt: 'desc' };
+      orderBy = [{ createdAt: 'desc' }];
       break;
+    case 'rating':
     case 'reviews':
-      orderBy = { reviewCount: 'desc' };
-      break;
+    case 'relevance':
     default:
-      // For relevance, prioritize VIP plans and then by rating
+      // For relevance, prioritize VIP plans and then by created date
       orderBy = [
         { planType: 'desc' }, // VIP first
-        { rating: 'desc' },
+        { createdAt: 'desc' },
       ];
   }
 
@@ -169,6 +165,11 @@ type OrderByOption =
       where,
       include: {
         category: true,
+        reviews: {
+          select: {
+            rating: true,
+          },
+        },
       },
       orderBy,
       skip,
@@ -177,8 +178,30 @@ type OrderByOption =
     prisma.business.count({ where }),
   ]);
 
+  // Calculate ratings for each business since they're not stored
+  const businessesWithRatings = businesses.map((business: PrismaBusinessWithReviews) => {
+    const reviews = business.reviews || [];
+    const reviewCount = reviews.length;
+    const averageRating = reviewCount > 0 
+      ? reviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / reviewCount 
+      : 0;
+
+    return {
+      ...business,
+      rating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
+      reviewCount,
+    };
+  });
+
+  // Sort by rating if requested (since we calculated it in memory)
+  if (sortBy === 'rating') {
+    businessesWithRatings.sort((a: any, b: any) => b.rating - a.rating);
+  } else if (sortBy === 'reviews') {
+    businessesWithRatings.sort((a: any, b: any) => b.reviewCount - a.reviewCount);
+  }
+
   return {
-    businesses: businesses as BusinessWithCategory[],
+    businesses: businessesWithRatings as any,
     total,
     page,
     pages: Math.ceil(total / limit),
@@ -194,7 +217,7 @@ export async function getBusinessBySlug(slug: string): Promise<BusinessWithExtra
     include: {
       category: true,
       reviews: {
-        where: { status: 'APPROVED' },
+        where: { isHidden: false },
         include: {
           user: {
             select: {
@@ -216,7 +239,20 @@ export async function getBusinessBySlug(slug: string): Promise<BusinessWithExtra
     },
   });
 
-  return business as BusinessWithExtras | null;
+  if (!business) return null;
+
+  // Calculate rating and review count
+  const reviews = business.reviews || [];
+  const reviewCount = reviews.length;
+  const averageRating = reviewCount > 0 
+    ? reviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / reviewCount 
+    : 0;
+
+  return {
+    ...business,
+    rating: Math.round(averageRating * 10) / 10,
+    reviewCount,
+  } as any;
 }
 
 // Get businesses by category
@@ -292,20 +328,39 @@ export async function getCategoryBySlug(slug: string) {
 
 // Get featured businesses (VIP plan)
 export async function getFeaturedBusinesses(limit = 6) {
-  return prisma.business.findMany({
+  const businesses = await prisma.business.findMany({
     where: {
       status: 'ACTIVE',
       planType: 'VIP',
     },
     include: {
       category: true,
+      reviews: {
+        select: {
+          rating: true,
+        },
+      },
     },
     orderBy: [
-      { rating: 'desc' },
-      { reviewCount: 'desc' },
+      { createdAt: 'desc' },
     ],
     take: limit,
-  }) as Promise<BusinessWithCategory[]>;
+  });
+
+  // Calculate ratings
+  return businesses.map((business: PrismaBusinessWithReviews) => {
+    const reviews = business.reviews || [];
+    const reviewCount = reviews.length;
+    const averageRating = reviewCount > 0 
+      ? reviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / reviewCount 
+      : 0;
+
+    return {
+      ...business,
+      rating: Math.round(averageRating * 10) / 10,
+      reviewCount,
+    };
+  }) as any;
 }
 
 // Create review
@@ -313,75 +368,54 @@ export async function createReview({
   businessId,
   userId,
   rating,
-  comment,
+  content,
   title,
 }: {
   businessId: string;
   userId?: string;
   rating: number;
-  comment: string;
+  content: string;
   title?: string;
 }) {
+  if (!userId) {
+    throw new Error('User ID is required to create a review');
+  }
+
   const review = await prisma.review.create({
     data: {
       businessId,
       userId,
       rating,
-      comment,
+      content,
       title,
-      status: 'PENDING', // Reviews need approval
+      isHidden: false, // Reviews are visible by default, can be hidden by admin
     },
   });
-
-  // Update business rating and review count
-  await updateBusinessRating(businessId);
 
   return review;
 }
 
-// Update business rating (called after review creation/approval)
-async function updateBusinessRating(businessId: string) {
-  const reviews = await prisma.review.findMany({
-    where: {
-      businessId,
-      status: 'APPROVED',
-    },
-  });
-
-  const rating = reviews.length > 0 
-    ? reviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / reviews.length 
-    : 0;
-
-  await prisma.business.update({
-    where: { id: businessId },
-    data: {
-      rating: Math.round(rating * 10) / 10, // Round to 1 decimal
-      reviewCount: reviews.length,
-    },
-  });
-}
-
 // Report abuse
 export async function reportAbuse({
-  targetType,
-  targetId,
+  type,
   reason,
-  description,
-  reporterEmail,
+  reporterId,
+  businessId,
+  reviewId,
 }: {
-  targetType: 'BUSINESS' | 'REVIEW';
-  targetId: string;
+  type: 'SPAM' | 'INAPPROPRIATE_CONTENT' | 'FAKE_REVIEW' | 'HARASSMENT' | 'COPYRIGHT' | 'OTHER';
   reason: string;
-  description?: string;
-  reporterEmail?: string;
+  reporterId: string;
+  businessId?: string;
+  reviewId?: string;
 }) {
   return prisma.abuseReport.create({
     data: {
-      targetType,
-      targetId,
+      type,
       reason,
-      description,
-      reporterEmail,
+      reporterId,
+      businessId,
+      reviewId,
       status: 'PENDING',
     },
   });
@@ -393,7 +427,7 @@ export async function getBusinessStats() {
     prisma.business.count(),
     prisma.business.count({ where: { status: 'ACTIVE' } }),
     prisma.category.count(),
-    prisma.review.count({ where: { status: 'APPROVED' } }),
+    prisma.review.count({ where: { isHidden: false } }),
   ]);
 
   return {

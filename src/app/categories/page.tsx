@@ -1,8 +1,5 @@
 import { Metadata } from "next";
-import {
-  getSampleCategories,
-  getSampleBusinessesByCategory,
-} from "@/lib/sample-data";
+import { getCategories } from "@/lib/business-service";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,16 +13,12 @@ export const metadata: Metadata = {
 };
 
 export default async function CategoriesPage() {
-  const categories = getSampleCategories();
-
-  // Get business count for each category
-  const categoriesWithCounts = categories.map((category) => ({
-    ...category,
-    businessCount: getSampleBusinessesByCategory(category.id).length,
-  }));
+  const categories = await getCategories();
 
   // Sort by business count (most popular first)
-  categoriesWithCounts.sort((a, b) => b.businessCount - a.businessCount);
+  const sortedCategories = [...categories].sort(
+    (a, b) => b._count.businesses - a._count.businesses
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
@@ -56,7 +49,7 @@ export default async function CategoriesPage() {
 
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
-          {categoriesWithCounts.map((category) => (
+          {sortedCategories.map((category) => (
             <Link key={category.id} href={`/c/${category.slug}`}>
               <Card className="glass hover:shadow-modern-lg transition-all duration-300 cursor-pointer h-full border-0 group">
                 <CardContent className="p-6">
@@ -77,8 +70,8 @@ export default async function CategoriesPage() {
                       )}
 
                       <Badge variant="secondary" className="font-medium">
-                        {category.businessCount}{" "}
-                        {category.businessCount === 1
+                        {category._count.businesses}{" "}
+                        {category._count.businesses === 1
                           ? "business"
                           : "businesses"}
                       </Badge>
@@ -100,8 +93,8 @@ export default async function CategoriesPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="text-center">
                 <div className="text-3xl font-bold text-primary mb-2">
-                  {categoriesWithCounts.reduce(
-                    (sum, cat) => sum + cat.businessCount,
+                  {sortedCategories.reduce(
+                    (sum: number, cat) => sum + cat._count.businesses,
                     0
                   )}
                 </div>
@@ -110,7 +103,7 @@ export default async function CategoriesPage() {
 
               <div className="text-center">
                 <div className="text-3xl font-bold text-primary mb-2">
-                  {categoriesWithCounts.length}
+                  {sortedCategories.length}
                 </div>
                 <p className="text-muted-foreground">Categories</p>
               </div>
@@ -118,7 +111,7 @@ export default async function CategoriesPage() {
               <div className="text-center">
                 <div className="text-3xl font-bold text-primary mb-2">
                   {
-                    categoriesWithCounts.filter((cat) => cat.businessCount > 0)
+                    sortedCategories.filter((cat) => cat._count.businesses > 0)
                       .length
                   }
                 </div>

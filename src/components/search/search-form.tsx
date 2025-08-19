@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Search, MapPin } from "lucide-react";
 
-import { getSampleCategories } from "@/lib/sample-data";
+import { getCategories, type CategoryWithCount } from "@/lib/business-service";
 
 interface SearchFormProps {
   className?: string;
@@ -23,12 +23,14 @@ interface SearchFormProps {
 
 export function SearchForm({ className, size = "default" }: SearchFormProps) {
   const router = useRouter();
+  const [categories, setCategories] = useState<CategoryWithCount[]>([]);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState("");
 
-  // Get categories from sample data
-  const categories = getSampleCategories();
+  useEffect(() => {
+    getCategories().then(setCategories);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,7 +103,8 @@ export function SearchForm({ className, size = "default" }: SearchFormProps) {
                 <SelectItem value="all">All categories</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.slug}>
-                    {cat.icon} {cat.name}
+                    {cat.icon && `${cat.icon} `}
+                    {cat.name}
                   </SelectItem>
                 ))}
               </SelectContent>

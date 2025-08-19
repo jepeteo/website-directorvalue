@@ -154,7 +154,7 @@ export default async function HomePage() {
           {featuredBusinesses.length > 0 ? (
             <>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                {featuredBusinesses.map((business) => (
+                {featuredBusinesses.map((business: any) => (
                   <BusinessCard
                     key={business.id}
                     business={{
