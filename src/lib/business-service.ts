@@ -1,7 +1,4 @@
 import { prisma } from './prisma';
-import type { Prisma } from '@prisma/client';
-
-type WorkingHours = Record<string, { open: string; close: string }>;
 
 // Type definitions matching actual Prisma schema
 export interface Business {
@@ -75,21 +72,21 @@ export type BusinessWithCategory = BusinessWithRating & {
   category: Category | null;
 };
 
+// Partial User type for select queries
+export type PartialUser = {
+  id: string;
+  name: string | null;
+  email: string | null;
+};
+
 export type BusinessWithExtras = BusinessWithRating & {
   category: Category | null;
-  reviews: Array<Review & { user: User | null }>;
-  owner?: User | null;
+  reviews: Array<Review & { user: PartialUser | null }>;
+  owner?: PartialUser | null;
 };
 
 export type ReviewWithUser = Review & {
   user: User | null;
-};
-
-// Prisma result types
-type PrismaBusinessWithReviews = {
-  reviews: { rating: number }[];
-  category: Category | null;
-  [key: string]: unknown;
 };
 
 // Search and filter functions
@@ -182,7 +179,7 @@ export async function searchBusinesses({
   ]);
 
   // Calculate ratings for each business since they're not stored
-  const businessesWithRatings = businesses.map((business: PrismaBusinessWithReviews) => {
+  const businessesWithRatings = businesses.map((business) => {
     const reviews = business.reviews || [];
     const reviewCount = reviews.length;
     const averageRating = reviewCount > 0 
@@ -198,13 +195,13 @@ export async function searchBusinesses({
 
   // Sort by rating if requested (since we calculated it in memory)
   if (sortBy === 'rating') {
-    businessesWithRatings.sort((a: any, b: any) => b.rating - a.rating);
+    businessesWithRatings.sort((a, b) => b.rating - a.rating);
   } else if (sortBy === 'reviews') {
-    businessesWithRatings.sort((a: any, b: any) => b.reviewCount - a.reviewCount);
+    businessesWithRatings.sort((a, b) => b.reviewCount - a.reviewCount);
   }
 
   return {
-    businesses: businessesWithRatings as any,
+    businesses: businessesWithRatings,
     total,
     page,
     pages: Math.ceil(total / limit),
@@ -284,7 +281,7 @@ export async function getBusinessBySlug(slug: string): Promise<BusinessWithExtra
     ...business,
     rating: Math.round(averageRating * 10) / 10,
     reviewCount,
-  } as any;
+  } as BusinessWithExtras;
 }
 
 // Get businesses by category
@@ -380,7 +377,7 @@ export async function getFeaturedBusinesses(limit = 6) {
   });
 
   // Calculate ratings
-  return businesses.map((business: PrismaBusinessWithReviews) => {
+  return businesses.map((business) => {
     const reviews = business.reviews || [];
     const reviewCount = reviews.length;
     const averageRating = reviewCount > 0 
@@ -392,7 +389,7 @@ export async function getFeaturedBusinesses(limit = 6) {
       rating: Math.round(averageRating * 10) / 10,
       reviewCount,
     };
-  }) as any;
+  }) as BusinessWithCategory[];
 }
 
 // Create review
@@ -496,11 +493,11 @@ export async function getBusinessesByOwner(ownerId: string) {
   });
 
   // Calculate ratings for each business
-  return businesses.map((business: any) => {
+  return businesses.map((business) => {
     const reviews = business.reviews || [];
     const reviewCount = reviews.length;
     const averageRating = reviewCount > 0 
-      ? reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviewCount 
+      ? reviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / reviewCount 
       : 0;
 
     return {
@@ -571,7 +568,7 @@ export async function createBusinessForOwner({
   categoryId?: string;
   services?: string[];
   tags?: string[];
-  workingHours?: any;
+  workingHours?: Record<string, { open: string; close: string }> | null;
   planType?: 'FREE_TRIAL' | 'BASIC' | 'PRO' | 'VIP';
 }) {
   return prisma.business.create({
@@ -604,15 +601,27 @@ export async function createBusinessForOwner({
 }
 
 // Update business for owner
-export async function updateBusinessForOwner({
-  businessId,
-  ownerId,
-  ...updateData
-}: {
+export async function updateBusinessForOwner(params: {
   businessId: string;
   ownerId: string;
-  [key: string]: any;
+  name?: string;
+  description?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  categoryId?: string;
+  services?: string[];
+  tags?: string[];
+  workingHours?: Record<string, { open: string; close: string }> | null;
+  planType?: 'FREE_TRIAL' | 'BASIC' | 'PRO' | 'VIP';
 }) {
+  const { businessId, ownerId, ...updateData } = params;
   // Verify ownership
   const business = await prisma.business.findFirst({
     where: {
@@ -627,7 +636,7 @@ export async function updateBusinessForOwner({
 
   return prisma.business.update({
     where: { id: businessId },
-    data: updateData,
+    data: updateData as Record<string, unknown>,
     include: {
       category: true,
     },

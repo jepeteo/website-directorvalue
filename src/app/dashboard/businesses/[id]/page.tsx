@@ -18,6 +18,13 @@ import {
   Eye,
 } from "lucide-react";
 
+interface WorkingHoursType {
+  [key: string]: {
+    open: string;
+    close: string;
+  };
+}
+
 interface BusinessPageProps {
   params: Promise<{
     id: string;
@@ -44,7 +51,7 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
       redirect("/dashboard/businesses");
     }
 
-    const workingHours = business.workingHours as any;
+    const workingHours = business.workingHours as WorkingHoursType | null;
 
     return (
       <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -101,7 +108,8 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
                     {business.reviews.length > 0
                       ? (
                           business.reviews.reduce(
-                            (acc: number, review: any) => acc + review.rating,
+                            (acc: number, review: { rating: number }) =>
+                              acc + review.rating,
                             0
                           ) / business.reviews.length
                         ).toFixed(1)
@@ -225,7 +233,10 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
               {workingHours ? (
                 <div className="space-y-2">
                   {Object.entries(workingHours).map(
-                    ([day, hours]: [string, any]) => (
+                    ([day, hours]: [
+                      string,
+                      { closed?: boolean; open?: string; close?: string }
+                    ]) => (
                       <div
                         key={day}
                         className="flex justify-between items-center py-1"
@@ -257,7 +268,7 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {business.reviews.slice(0, 5).map((review: any) => (
+                {business.reviews.slice(0, 5).map((review) => (
                   <div
                     key={review.id}
                     className="border-b border-gray-200 pb-4 last:border-b-0"
@@ -282,8 +293,8 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
                         {new Date(review.createdAt).toLocaleDateString()}
                       </span>
                     </div>
-                    {review.comment && (
-                      <p className="text-gray-600">{review.comment}</p>
+                    {review.content && (
+                      <p className="text-gray-600">{review.content}</p>
                     )}
                   </div>
                 ))}

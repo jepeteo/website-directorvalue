@@ -8,7 +8,6 @@ import {
   BarChart3,
   Settings,
   CreditCard,
-  Users,
   MessageSquare,
   PlusCircle,
   Home,

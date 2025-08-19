@@ -12,6 +12,24 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Building2, Plus, Star, MessageSquare, Eye, Edit } from "lucide-react";
 
+interface BusinessData {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  status: string;
+  planType: "FREE_TRIAL" | "BASIC" | "PRO" | "VIP";
+  createdAt: Date;
+  rating?: number;
+  reviewCount?: number;
+  category?: {
+    name: string;
+  } | null;
+  _count?: {
+    reviews: number;
+  };
+}
+
 export default async function BusinessesPage() {
   const session = await auth();
 
@@ -42,7 +60,7 @@ export default async function BusinessesPage() {
         {/* Businesses Grid */}
         {businesses.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {businesses.map((business: any) => (
+            {businesses.map((business: BusinessData) => (
               <Card key={business.id} className="overflow-hidden">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
@@ -89,7 +107,7 @@ export default async function BusinessesPage() {
                       <div className="flex items-center justify-center text-yellow-500 mb-1">
                         <Star className="h-4 w-4 mr-1" />
                         <span className="text-sm font-medium">
-                          {business.rating.toFixed(1)}
+                          {business.rating?.toFixed(1) || "0.0"}
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground">Rating</p>
@@ -99,7 +117,7 @@ export default async function BusinessesPage() {
                       <div className="flex items-center justify-center text-blue-500 mb-1">
                         <MessageSquare className="h-4 w-4 mr-1" />
                         <span className="text-sm font-medium">
-                          {business.reviewCount}
+                          {business.reviewCount || 0}
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground">Reviews</p>
@@ -142,8 +160,8 @@ export default async function BusinessesPage() {
                 <Building2 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-xl font-medium mb-2">No businesses yet</h3>
                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  You haven't created any business listings yet. Get started by
-                  adding your first business to the directory.
+                  You haven&apos;t created any business listings yet. Get
+                  started by adding your first business to the directory.
                 </p>
                 <Button asChild>
                   <Link href="/dashboard/businesses/new">

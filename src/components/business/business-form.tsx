@@ -15,17 +15,32 @@ interface Category {
   slug: string;
 }
 
+interface BusinessInitialData {
+  name?: string;
+  description?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  address?: string;
+  addressLine1?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  postalCode?: string;
+  country?: string;
+  categoryId?: string;
+}
+
 interface BusinessFormProps {
   categories: Category[];
   userId: string;
   mode: "create" | "edit";
   businessId?: string;
-  initialData?: any;
+  initialData?: BusinessInitialData;
 }
 
 export function BusinessForm({
   categories,
-  userId,
   mode,
   businessId,
   initialData,
@@ -86,7 +101,7 @@ export function BusinessForm({
         throw new Error(errorData.error || "Failed to save business");
       }
 
-      const result = await response.json();
+      await response.json();
 
       toast({
         title: mode === "create" ? "Business Created" : "Business Updated",

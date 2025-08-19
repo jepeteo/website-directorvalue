@@ -11,6 +11,29 @@ interface PageProps {
   searchParams: Promise<{ page?: string; sortBy?: string }>;
 }
 
+interface BusinessWithCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  city?: string | null;
+  country?: string | null;
+  logo?: string | null;
+  planType: "FREE_TRIAL" | "BASIC" | "PRO" | "VIP";
+  createdAt: Date;
+  category?: {
+    name: string;
+  } | null;
+}
+
+interface PageProps {
+  params: Promise<{ category: string }>;
+  searchParams: Promise<{ page?: string; sortBy?: string }>;
+}
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
@@ -122,7 +145,7 @@ export default async function CategoryPage({
         {businesses.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-              {businesses.map((business: any) => (
+              {businesses.map((business: BusinessWithCategory) => (
                 <BusinessCard
                   key={business.id}
                   business={{

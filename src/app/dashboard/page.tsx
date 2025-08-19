@@ -13,6 +13,21 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+
+interface BusinessWithRating {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  status: string;
+  planType: "FREE_TRIAL" | "BASIC" | "PRO" | "VIP";
+  createdAt: Date;
+  rating: number;
+  reviewCount: number;
+  category?: {
+    name: string;
+  } | null;
+}
 import {
   Building2,
   BarChart3,
@@ -40,7 +55,8 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold">Dashboard Overview</h1>
           <p className="text-muted-foreground">
-            Welcome back! Here's what's happening with your businesses.
+            Welcome back! Here&apos;s what&apos;s happening with your
+            businesses.
           </p>
         </div>
 
@@ -99,7 +115,7 @@ export default async function DashboardPage() {
                 {businesses.length > 0
                   ? (
                       businesses.reduce(
-                        (sum: number, b: any) => sum + b.rating,
+                        (sum: number, b: BusinessWithRating) => sum + b.rating,
                         0
                       ) / businesses.length
                     ).toFixed(1)
@@ -134,37 +150,39 @@ export default async function DashboardPage() {
             <CardContent>
               {businesses.length > 0 ? (
                 <div className="space-y-4">
-                  {businesses.slice(0, 3).map((business: any) => (
-                    <div
-                      key={business.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <div className="flex-1">
-                        <h4 className="font-medium">{business.name}</h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge
-                            variant={
-                              business.status === "ACTIVE"
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {business.status}
-                          </Badge>
-                          <Badge variant="outline">{business.planType}</Badge>
+                  {businesses
+                    .slice(0, 3)
+                    .map((business: BusinessWithRating) => (
+                      <div
+                        key={business.id}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <div className="flex-1">
+                          <h4 className="font-medium">{business.name}</h4>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge
+                              variant={
+                                business.status === "ACTIVE"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {business.status}
+                            </Badge>
+                            <Badge variant="outline">{business.planType}</Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {business.reviewCount} reviews • {business.rating}
+                            /5.0 rating
+                          </p>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {business.reviewCount} reviews • {business.rating}/5.0
-                          rating
-                        </p>
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/dashboard/businesses/${business.id}`}>
+                            Edit
+                          </Link>
+                        </Button>
                       </div>
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/dashboard/businesses/${business.id}`}>
-                          Edit
-                        </Link>
-                      </Button>
-                    </div>
-                  ))}
+                    ))}
                   {businesses.length > 3 && (
                     <Button asChild variant="outline" className="w-full">
                       <Link href="/dashboard/businesses">

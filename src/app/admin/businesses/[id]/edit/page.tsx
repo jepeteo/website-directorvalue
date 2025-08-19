@@ -54,7 +54,19 @@ export default async function AdminEditBusinessPage({
             userId={business.ownerId}
             mode="edit"
             businessId={id}
-            initialData={business}
+            initialData={{
+              name: business.name,
+              description: business.description || undefined,
+              email: business.email || undefined,
+              phone: business.phone || undefined,
+              website: business.website || undefined,
+              addressLine1: business.addressLine1 || undefined,
+              city: business.city || undefined,
+              state: business.state || undefined,
+              postalCode: business.postalCode || undefined,
+              country: business.country || undefined,
+              categoryId: business.categoryId || undefined,
+            }}
           />
         </Suspense>
       </div>

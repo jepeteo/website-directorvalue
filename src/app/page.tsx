@@ -12,6 +12,22 @@ import {
 } from "@/lib/business-service";
 import Link from "next/link";
 
+interface FeaturedBusiness {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  logo?: string | null;
+  city?: string | null;
+  country?: string | null;
+  planType: "FREE_TRIAL" | "BASIC" | "PRO" | "VIP";
+  rating?: number;
+  reviewCount?: number;
+  category?: {
+    name: string;
+  } | null;
+}
+
 export default async function HomePage() {
   // Fetch real data from database
   const [featuredBusinesses, categories, stats] = await Promise.all([
@@ -154,7 +170,7 @@ export default async function HomePage() {
           {featuredBusinesses.length > 0 ? (
             <>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                {featuredBusinesses.map((business: any) => (
+                {featuredBusinesses.map((business: FeaturedBusiness) => (
                   <BusinessCard
                     key={business.id}
                     business={{
