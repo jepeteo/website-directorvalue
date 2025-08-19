@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Logo } from "@/components/ui/logo";
 
 export function Footer() {
   return (
@@ -8,21 +9,8 @@ export function Footer() {
         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Brand Section */}
           <div className="lg:col-span-2">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 relative">
-                <Image
-                  src="/directorvalue-logo.webp"
-                  alt="Director Value Logo"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <div>
-                <h4 className="font-bold text-white text-lg">Director Value</h4>
-                <span className="text-sm text-gray-400">
-                  Everything you need worldwide
-                </span>
-              </div>
+            <div className="mb-4">
+              <Logo size="md" variant="white" />
             </div>
             <p className="text-gray-400 mb-6 max-w-md">
               Your comprehensive global business directory. Connecting customers
@@ -189,7 +177,7 @@ export function Footer() {
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2025 Director Value. All rights reserved. An MTX company.
+              © 2025 Director Value. All rights reserved. An MTX Studio company.
             </p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
               <span className="text-sm text-gray-400">Available in:</span>

@@ -1,64 +1,48 @@
-import Image from "next/image";
 import Link from "next/link";
 import { UserMenu } from "@/components/auth/user-menu";
+import { Logo } from "@/components/ui/logo";
 
 export function Header() {
   return (
-    <header className="glass sticky top-0 z-50 border-b border-border">
-      <div className="container mx-auto px-4 py-4">
+    <header className="glass sticky top-0 z-50 border-b border-border/50">
+      <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 relative group-hover:scale-105 transition-transform">
-              <Image
-                src="/directorvalue-logo.webp"
-                alt="Director Value Logo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">
-                Director Value
-              </h1>
-              <span className="text-xs text-muted-foreground font-medium">
-                Everything you need worldwide
-              </span>
-            </div>
-          </Link>
+          <Logo size="md" variant="default" />
 
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-1">
             <Link
               href="/search"
-              className="text-muted-foreground hover:text-foreground font-medium transition-colors"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
             >
               Browse
             </Link>
             <Link
               href="/categories"
-              className="text-muted-foreground hover:text-foreground font-medium transition-colors"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
             >
               Categories
             </Link>
             <Link
               href="/about"
-              className="text-muted-foreground hover:text-foreground font-medium transition-colors"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
             >
               About
             </Link>
             <Link
               href="/pricing"
-              className="text-muted-foreground hover:text-foreground font-medium transition-colors"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
             >
               Pricing
             </Link>
-            <UserMenu />
+            <div className="ml-2">
+              <UserMenu />
+            </div>
           </nav>
 
           {/* Mobile menu button - TODO: Implement mobile menu */}
-          <button className="md:hidden p-2 hover:bg-muted rounded-lg transition-colors">
+          <button className="md:hidden p-2 hover:bg-muted/50 rounded-xl transition-all duration-200 group">
             <svg
-              className="w-6 h-6"
+              className="w-6 h-6 group-hover:scale-110 transition-transform duration-200"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

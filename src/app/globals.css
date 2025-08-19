@@ -335,6 +335,20 @@
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   }
 
+  /* Glass Effect for Header */
+  .glass {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .dark .glass {
+    background: rgba(33, 39, 55, 0.85);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
   /* Hero Section Gradient */
   .hero-gradient {
     background: linear-gradient(135deg,

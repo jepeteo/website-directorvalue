@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/ui/logo";
 
 export const metadata: Metadata = {
   title: "Check Your Email - Director Value",
@@ -37,25 +38,9 @@ function VerifyRequestContent() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center">
           {/* Logo */}
-          <Link href="/" className="inline-flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 relative">
-              <Image
-                src="/directorvalue-logo.webp"
-                alt="Director Value Logo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">
-                Director Value
-              </h1>
-              <span className="text-xs text-gray-500">
-                Everything you need worldwide
-              </span>
-            </div>
-          </Link>
+          <div className="mb-6">
+            <Logo size="md" variant="dark" />
+          </div>
 
           <div className="mx-auto h-12 w-12 text-green-600">
             <svg
