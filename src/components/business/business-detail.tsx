@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ReviewForm } from "@/components/reviews/review-form";
-import { ReviewsList } from "@/components/reviews/reviews-list";
 import {
   MapPin,
   Phone,
@@ -15,18 +14,7 @@ import {
   Star,
   Heart,
   Share2,
-  Navigation,
 } from "lucide-react";
-
-interface BusinessHours {
-  closed?: boolean;
-  open?: string;
-  close?: string;
-}
-
-interface HoursData {
-  [key: string]: BusinessHours;
-}
 
 interface BusinessDetailProps {
   business: {
@@ -34,275 +22,375 @@ interface BusinessDetailProps {
     name: string;
     slug: string;
     description: string;
-    address: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-    phone: string | null;
-    email: string | null;
-    website: string | null;
-    hours: HoursData | null;
-    category: {
+    email?: string;
+    phone?: string;
+    website?: string;
+    addressLine1?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+    logo?: string;
+    images?: string[];
+    services?: string[];
+    tags?: string[];
+    workingHours?: Record<
+      string,
+      { open?: string; close?: string; closed?: boolean }
+    >;
+    planType: "FREE_TRIAL" | "BASIC" | "PRO" | "VIP";
+    status: string;
+    averageRating?: number;
+    reviewCount?: number;
+    category?: {
       id: string;
       name: string;
-    };
-    owner: {
-      id: string;
-      name: string | null;
-      email: string;
-    };
-    reviews: Array<{
+      slug: string;
+      description?: string;
+      icon?: string;
+    } | null;
+    reviews?: Array<{
       id: string;
       rating: number;
-      comment: string;
-      createdAt: Date;
-      user: {
-        id: string;
-        name: string | null;
-      };
+      title?: string;
+      content?: string;
+      userName?: string;
+      createdAt?: string;
     }>;
-    _count: {
-      reviews: number;
-    };
   };
 }
 
 export function BusinessDetail({ business }: BusinessDetailProps) {
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
 
-  const averageRating =
-    business.reviews.length > 0
-      ? business.reviews.reduce((sum, review) => sum + review.rating, 0) /
-        business.reviews.length
-      : 0;
-
-  const handleReviewSubmitted = () => {
-    setRefreshTrigger((prev) => prev + 1);
+  const formatAddress = () => {
+    const parts = [
+      business.addressLine1,
+      business.city,
+      business.state,
+      business.postalCode,
+      business.country,
+    ].filter(Boolean);
+    return parts.join(", ");
   };
 
-  const formatHours = (hours: HoursData | null): HoursData => {
-    if (!hours) return {};
-    return hours;
+  const formatWorkingHours = () => {
+    if (!business.workingHours) return null;
+
+    const days = [
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+      "sunday",
+    ];
+    const dayNames = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ];
+
+    return days
+      .map((day, index) => {
+        const hours = business.workingHours?.[day];
+        if (!hours) return null;
+
+        return (
+          <div key={day} className="flex justify-between">
+            <span className="font-medium">{dayNames[index]}</span>
+            <span>
+              {hours.closed ? "Closed" : `${hours.open} - ${hours.close}`}
+            </span>
+          </div>
+        );
+      })
+      .filter(Boolean);
   };
 
-  const currentDay = [
-    "sunday",
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-  ][new Date().getDay()];
-  const todayHours: BusinessHours | undefined = formatHours(business.hours)[
-    currentDay
-  ];
+  const getPlanBadge = () => {
+    switch (business.planType) {
+      case "VIP":
+        return (
+          <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-semibold">
+            ⭐ VIP Business
+          </Badge>
+        );
+      case "PRO":
+        return (
+          <Badge className="bg-gradient-to-r from-blue-500 to-blue-700 text-white">
+            💼 Pro Business
+          </Badge>
+        );
+      case "BASIC":
+        return (
+          <Badge className="bg-gradient-to-r from-green-500 to-green-700 text-white">
+            ✓ Verified Business
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold">{business.name}</h1>
-                <Badge variant="secondary">{business.category.name}</Badge>
+    <div className="space-y-8">
+      {/* Header Section */}
+      <Card className="glass border-0 shadow-modern-lg">
+        <CardContent className="p-8">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Logo */}
+            {business.logo && (
+              <div className="flex-shrink-0">
+                <div className="w-32 h-32 rounded-xl overflow-hidden bg-muted flex items-center justify-center">
+                  <Image
+                    src={business.logo}
+                    alt={`${business.name} logo`}
+                    width={128}
+                    height={128}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
+            )}
 
-              <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="font-medium">
-                    {averageRating > 0
-                      ? averageRating.toFixed(1)
-                      : "No reviews"}
-                  </span>
-                  <span>({business._count.reviews} reviews)</span>
+            {/* Business Info */}
+            <div className="flex-1 space-y-4">
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-3xl font-bold">{business.name}</h1>
+                  {getPlanBadge()}
                 </div>
 
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  <span>
-                    {business.city}, {business.state}
-                  </span>
-                </div>
-
-                {todayHours && (
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    <span>
-                      {todayHours.closed
-                        ? "Closed today"
-                        : `Open until ${todayHours.close}`}
-                    </span>
+                {business.category && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <span>{business.category.icon}</span>
+                    <span>{business.category.name}</span>
                   </div>
                 )}
               </div>
 
-              <p className="text-gray-600 leading-relaxed max-w-3xl">
+              {/* Rating */}
+              {business.averageRating && (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-5 w-5 ${
+                          i < Math.floor(business.averageRating || 0)
+                            ? "text-yellow-400 fill-current"
+                            : "text-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="font-semibold">
+                    {business.averageRating.toFixed(1)}
+                  </span>
+                  <span className="text-muted-foreground">
+                    ({business.reviewCount}{" "}
+                    {business.reviewCount === 1 ? "review" : "reviews"})
+                  </span>
+                </div>
+              )}
+
+              {/* Description */}
+              <p className="text-muted-foreground leading-relaxed">
                 {business.description}
               </p>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-2 lg:w-48">
-              <Button className="w-full">
-                <Phone className="mr-2 h-4 w-4" />
-                Call Now
-              </Button>
-              <Button variant="outline" className="w-full">
-                <Navigation className="mr-2 h-4 w-4" />
-                Get Directions
-              </Button>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Heart className="h-4 w-4" />
+              {/* Tags */}
+              {business.tags && business.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {business.tags.map((tag, index) => (
+                    <Badge key={index} variant="secondary">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-3 pt-4">
+                <Button
+                  variant={isLiked ? "default" : "outline"}
+                  onClick={() => setIsLiked(!isLiked)}
+                >
+                  <Heart
+                    className={`mr-2 h-4 w-4 ${isLiked ? "fill-current" : ""}`}
+                  />
+                  {isLiked ? "Liked" : "Like"}
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Share2 className="h-4 w-4" />
+                <Button variant="outline">
+                  <Share2 className="mr-2 h-4 w-4" />
+                  Share
                 </Button>
               </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Services */}
+          {business.services && business.services.length > 0 && (
+            <Card className="glass border-0 shadow-modern">
+              <CardHeader>
+                <CardTitle>Services</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {business.services.map((service, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-primary rounded-full" />
+                      <span>{service}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Reviews */}
+          <Card className="glass border-0 shadow-modern">
+            <CardHeader>
+              <CardTitle>Reviews</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {business.reviews && business.reviews.length > 0 ? (
+                <div className="space-y-6">
+                  {business.reviews.map((review) => (
+                    <div
+                      key={review.id}
+                      className="border-b border-border pb-6 last:border-0"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                    i < review.rating
+                                      ? "text-yellow-400 fill-current"
+                                      : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="font-medium">
+                              {review.userName}
+                            </span>
+                          </div>
+                          {review.title && (
+                            <h4 className="font-semibold mb-2">
+                              {review.title}
+                            </h4>
+                          )}
+                        </div>
+                        {review.createdAt && (
+                          <span className="text-sm text-muted-foreground">
+                            {new Date(review.createdAt).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                      {review.content && (
+                        <p className="text-muted-foreground">
+                          {review.content}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-center py-8">
+                  No reviews yet. Be the first to review this business!
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Business Hours */}
-            {business.hours && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Hours of Operation
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {Object.entries(formatHours(business.hours)).map(
-                      ([day, hours]: [string, BusinessHours]) => (
-                        <div
-                          key={day}
-                          className="flex justify-between items-center"
-                        >
-                          <span className="capitalize font-medium">{day}</span>
-                          <span className="text-muted-foreground">
-                            {hours.closed
-                              ? "Closed"
-                              : `${hours.open} - ${hours.close}`}
-                          </span>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Reviews Section */}
-            <ReviewsList
-              businessId={business.id}
-              initialReviews={business.reviews}
-              refreshTrigger={refreshTrigger}
-            />
-
-            {/* Review Form */}
-            <ReviewForm
-              businessId={business.id}
-              businessName={business.name}
-              onReviewSubmitted={handleReviewSubmitted}
-            />
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Contact Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Contact Info */}
+          <Card className="glass border-0 shadow-modern">
+            <CardHeader>
+              <CardTitle>Contact Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {formatAddress() && (
                 <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <div className="font-medium">Address</div>
-                    <div className="text-sm text-muted-foreground">
-                      {business.address}
-                      <br />
-                      {business.city}, {business.state} {business.zipCode}
-                      <br />
-                      {business.country}
-                    </div>
+                    <p className="text-sm text-muted-foreground">Address</p>
+                    <p>{formatAddress()}</p>
                   </div>
                 </div>
+              )}
 
-                {business.phone && (
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">Phone</div>
-                      <div className="text-sm text-muted-foreground">
-                        {business.phone}
-                      </div>
-                    </div>
+              {business.phone && (
+                <div className="flex items-center gap-3">
+                  <Phone className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Phone</p>
+                    <p>{business.phone}</p>
                   </div>
-                )}
+                </div>
+              )}
 
-                {business.email && (
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">Email</div>
-                      <div className="text-sm text-muted-foreground">
-                        {business.email}
-                      </div>
-                    </div>
+              {business.email && (
+                <div className="flex items-center gap-3">
+                  <Mail className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p>{business.email}</p>
                   </div>
-                )}
+                </div>
+              )}
 
-                {business.website && (
-                  <div className="flex items-center gap-3">
-                    <Globe className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">Website</div>
-                      <a
-                        href={business.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:underline"
-                      >
-                        Visit Website
-                      </a>
-                    </div>
+              {business.website && (
+                <div className="flex items-center gap-3">
+                  <Globe className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Website</p>
+                    <a
+                      href={business.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      Visit Website
+                    </a>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-            {/* Quick Actions */}
-            <Card>
+          {/* Working Hours */}
+          {business.workingHours && (
+            <Card className="glass border-0 shadow-modern">
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Working Hours
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
-                  <Star className="mr-2 h-4 w-4" />
-                  Write a Review
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <MapPin className="mr-2 h-4 w-4" />
-                  View on Map
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Share2 className="mr-2 h-4 w-4" />
-                  Share Business
-                </Button>
+              <CardContent>
+                <div className="space-y-2 text-sm">{formatWorkingHours()}</div>
               </CardContent>
             </Card>
-          </div>
+          )}
         </div>
       </div>
     </div>

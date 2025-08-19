@@ -1,6 +1,35 @@
 // Sample data for development - Phase 1 MVP
 // This will be replaced with real data later
 
+type PlanType = "FREE_TRIAL" | "BASIC" | "PRO" | "VIP";
+
+interface SampleBusiness {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  addressLine1?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
+  logo?: string;
+  images?: string[];
+  services?: string[];
+  tags?: string[];
+  workingHours?: Record<string, { open?: string; close?: string; closed?: boolean }>;
+  planType: PlanType;
+  status: string;
+  categoryId?: string;
+  averageRating?: number;
+  reviewCount?: number;
+}
+
 export const SAMPLE_CATEGORIES = [
   {
     id: "cat-1",
@@ -76,7 +105,7 @@ export const SAMPLE_CATEGORIES = [
   },
 ];
 
-export const SAMPLE_BUSINESSES = [
+export const SAMPLE_BUSINESSES: SampleBusiness[] = [
   {
     id: "biz-1",
     name: "Bella Vista Restaurant",
@@ -354,8 +383,8 @@ export function searchSampleBusinesses(query: string, category?: string, locatio
   // Filter by location
   if (location) {
     filteredBusinesses = filteredBusinesses.filter(business => 
-      business.city.toLowerCase().includes(location.toLowerCase()) ||
-      business.state.toLowerCase().includes(location.toLowerCase())
+      (business.city && business.city.toLowerCase().includes(location.toLowerCase())) ||
+      (business.state && business.state.toLowerCase().includes(location.toLowerCase()))
     );
   }
 
@@ -365,8 +394,8 @@ export function searchSampleBusinesses(query: string, category?: string, locatio
     filteredBusinesses = filteredBusinesses.filter(business =>
       business.name.toLowerCase().includes(searchTerm) ||
       business.description.toLowerCase().includes(searchTerm) ||
-      business.tags.some(tag => tag.toLowerCase().includes(searchTerm)) ||
-      business.services.some(service => service.toLowerCase().includes(searchTerm))
+      (business.tags && business.tags.some(tag => tag.toLowerCase().includes(searchTerm))) ||
+      (business.services && business.services.some(service => service.toLowerCase().includes(searchTerm)))
     );
   }
 
