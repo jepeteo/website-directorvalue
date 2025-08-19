@@ -1,28 +1,31 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 
 export function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300">
+    <footer className="bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-gray-300">
+      {/* Main Footer Content */}
       <div className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Brand Section */}
           <div className="lg:col-span-2">
-            <div className="mb-4">
+            <div className="mb-6">
               <Logo size="md" variant="white" />
             </div>
-            <p className="text-gray-400 mb-6 max-w-md">
+            <p className="text-gray-400 mb-8 max-w-md leading-relaxed">
               Your comprehensive global business directory. Connecting customers
               with trusted businesses worldwide since 2025.
             </p>
-            <div className="flex space-x-4">
+
+            {/* Social Links */}
+            <div className="flex space-x-5">
               <Link
                 href="#"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-all duration-200 hover:scale-110"
+                aria-label="Follow us on Twitter"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-6 h-6"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -31,22 +34,24 @@ export function Footer() {
               </Link>
               <Link
                 href="#"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-all duration-200 hover:scale-110"
+                aria-label="Follow us on Facebook"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-6 h-6"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z" />
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                 </svg>
               </Link>
               <Link
                 href="#"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-all duration-200 hover:scale-110"
+                aria-label="Connect on LinkedIn"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-6 h-6"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -58,12 +63,12 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h5 className="font-semibold text-white mb-4">Quick Links</h5>
-            <ul className="space-y-2">
+            <h5 className="font-semibold text-white mb-6 text-lg">Discover</h5>
+            <ul className="space-y-3">
               <li>
                 <Link
                   href="/search"
-                  className="hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors duration-200 hover:translate-x-1 inline-block"
                 >
                   Browse Businesses
                 </Link>
@@ -71,7 +76,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/categories"
-                  className="hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors duration-200 hover:translate-x-1 inline-block"
                 >
                   Categories
                 </Link>
@@ -79,7 +84,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/pricing"
-                  className="hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors duration-200 hover:translate-x-1 inline-block"
                 >
                   Pricing Plans
                 </Link>
@@ -87,7 +92,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/about"
-                  className="hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors duration-200 hover:translate-x-1 inline-block"
                 >
                   About Us
                 </Link>
@@ -97,38 +102,40 @@ export function Footer() {
 
           {/* For Businesses */}
           <div>
-            <h5 className="font-semibold text-white mb-4">For Businesses</h5>
-            <ul className="space-y-2">
+            <h5 className="font-semibold text-white mb-6 text-lg">
+              For Business
+            </h5>
+            <ul className="space-y-3">
               <li>
                 <Link
-                  href="/dashboard"
-                  className="hover:text-white transition-colors"
+                  href="/dashboard/business/add"
+                  className="text-gray-400 hover:text-white transition-colors duration-200 hover:translate-x-1 inline-block"
                 >
-                  Add Your Business
+                  List Your Business
                 </Link>
               </li>
               <li>
                 <Link
                   href="/pricing"
-                  className="hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors duration-200 hover:translate-x-1 inline-block"
                 >
                   Business Plans
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/support"
-                  className="hover:text-white transition-colors"
+                  href="/dashboard"
+                  className="text-gray-400 hover:text-white transition-colors duration-200 hover:translate-x-1 inline-block"
                 >
-                  Support
+                  Dashboard
                 </Link>
               </li>
               <li>
                 <Link
                   href="/contact"
-                  className="hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors duration-200 hover:translate-x-1 inline-block"
                 >
-                  Contact Us
+                  Support
                 </Link>
               </li>
             </ul>
@@ -136,12 +143,12 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h5 className="font-semibold text-white mb-4">Legal</h5>
-            <ul className="space-y-2">
+            <h5 className="font-semibold text-white mb-6 text-lg">Legal</h5>
+            <ul className="space-y-3">
               <li>
                 <Link
                   href="/privacy"
-                  className="hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors duration-200 hover:translate-x-1 inline-block"
                 >
                   Privacy Policy
                 </Link>
@@ -149,7 +156,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/terms"
-                  className="hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors duration-200 hover:translate-x-1 inline-block"
                 >
                   Terms of Service
                 </Link>
@@ -157,7 +164,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/cookies"
-                  className="hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors duration-200 hover:translate-x-1 inline-block"
                 >
                   Cookie Policy
                 </Link>
@@ -165,7 +172,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/gdpr"
-                  className="hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors duration-200 hover:translate-x-1 inline-block"
                 >
                   GDPR
                 </Link>
@@ -173,24 +180,42 @@ export function Footer() {
             </ul>
           </div>
         </div>
+      </div>
 
-        <div className="border-t border-gray-800 mt-12 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm">
-              © 2025 Director Value. All rights reserved. An MTX Studio company.
-            </p>
-            <div className="flex items-center space-x-4 mt-4 md:mt-0">
-              <span className="text-sm text-gray-400">Available in:</span>
-              <div className="flex space-x-2">
-                <button className="text-sm px-2 py-1 rounded hover:bg-gray-800 transition-colors">
-                  EN
-                </button>
-                <button className="text-sm px-2 py-1 rounded hover:bg-gray-800 transition-colors">
-                  FR
-                </button>
-                <button className="text-sm px-2 py-1 rounded hover:bg-gray-800 transition-colors">
-                  DE
-                </button>
+      {/* Bottom Bar */}
+      <div className="border-t border-gray-800/50 bg-gray-900/50 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-2 text-sm text-gray-400">
+              <span>© 2025 Director Value. All rights reserved.</span>
+              <span className="hidden sm:inline">·</span>
+              <span>
+                Built by{" "}
+                <Link
+                  href="https://mtxstudio.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-white transition-colors duration-200 font-medium"
+                >
+                  MTX Studio
+                </Link>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-400">Available in:</span>
+                <div className="flex gap-1">
+                  <button className="text-sm px-3 py-1 rounded-md hover:bg-gray-800 transition-colors duration-200 text-gray-300 hover:text-white">
+                    EN
+                  </button>
+                  <button className="text-sm px-3 py-1 rounded-md hover:bg-gray-800 transition-colors duration-200 text-gray-300 hover:text-white">
+                    FR
+                  </button>
+                  <button className="text-sm px-3 py-1 rounded-md hover:bg-gray-800 transition-colors duration-200 text-gray-300 hover:text-white">
+                    DE
+                  </button>
+                </div>
               </div>
             </div>
           </div>
