@@ -1,10 +1,12 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 import { BusinessCard } from "@/components/business/business-card";
 import { Button } from "@/components/ui/button";
-import { getBusinesses, getCategoryBySlug } from "@/lib/db";
+import { Badge } from "@/components/ui/badge";
+import {
+  getSampleCategoryBySlug,
+  getSampleBusinessesByCategory,
+} from "@/lib/sample-data";
 import Link from "next/link";
 
 interface PageProps {
@@ -16,7 +18,7 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { category } = await params;
-  const categoryData = await getCategoryBySlug(category);
+  const categoryData = getSampleCategoryBySlug(category);
 
   if (!categoryData) {
     return {
@@ -30,133 +32,143 @@ export async function generateMetadata({
   };
 }
 
-interface Business {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  averageRating: number;
-  reviewCount: number;
-  planType: "FREE_TRIAL" | "BASIC" | "PRO" | "VIP";
-  category: {
-    name: string;
-  };
-  city?: string;
-  country?: string;
-  logoUrl?: string | null;
-}
-
 export default async function CategoryPage({
   params,
   searchParams,
 }: PageProps) {
   const { category } = await params;
-  const { page } = await searchParams;
-  const currentPage = parseInt(page || "1");
+  const { page = "1" } = await searchParams;
 
-  const categoryData = await getCategoryBySlug(category);
+  const categoryData = getSampleCategoryBySlug(category);
 
   if (!categoryData) {
     notFound();
   }
 
-  const result = await getBusinesses({
-    category,
-    page: currentPage,
-    limit: 12,
-  });
+  // Get businesses for this category
+  const businesses = getSampleBusinessesByCategory(categoryData.id);
 
-  const { businesses, pagination } = result;
+  // Simple pagination (for MVP)
+  const pageSize = 12;
+  const currentPage = parseInt(page);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedBusinesses = businesses.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(businesses.length / pageSize);
 
   return (
-    <div className="min-h-screen bg-white">
-      <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Category Header */}
-          <div className="text-center mb-12">
-            <div className="text-6xl mb-4">{categoryData.icon}</div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              {categoryData.name}
-            </h1>
-            <p className="text-xl text-gray-600 mb-2">
-              {categoryData.description}
-            </p>
-            <p className="text-gray-500">{pagination.total} businesses found</p>
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
+      <div className="container mx-auto px-4 py-8">
+        {/* Category Header */}
+        <div className="mb-12 text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <span className="text-4xl">{categoryData.icon}</span>
+            <h1 className="text-4xl font-bold">{categoryData.name}</h1>
           </div>
 
-          {/* Breadcrumb */}
-          <nav className="flex text-sm text-gray-500 mb-8">
-            <Link href="/" className="hover:text-gray-700">
-              Home
-            </Link>
-            <span className="mx-2">/</span>
-            <Link href="/categories" className="hover:text-gray-700">
-              Categories
-            </Link>
-            <span className="mx-2">/</span>
-            <span className="text-gray-900">{categoryData.name}</span>
-          </nav>
-
-          {/* Business Listings */}
-          {businesses.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                {businesses.map((business: Business) => (
-                  <BusinessCard
-                    key={business.id}
-                    business={{
-                      ...business,
-                      category: business.category.name,
-                      rating: business.averageRating,
-                      logo: business.logoUrl,
-                    }}
-                  />
-                ))}
-              </div>
-
-              {/* Pagination */}
-              {pagination.pages > 1 && (
-                <div className="flex justify-center items-center space-x-4">
-                  {currentPage > 1 && (
-                    <Button variant="outline" asChild>
-                      <Link href={`/c/${category}?page=${currentPage - 1}`}>
-                        Previous
-                      </Link>
-                    </Button>
-                  )}
-
-                  <span className="text-gray-600">
-                    Page {pagination.page} of {pagination.pages}
-                  </span>
-
-                  {currentPage < pagination.pages && (
-                    <Button variant="outline" asChild>
-                      <Link href={`/c/${category}?page=${currentPage + 1}`}>
-                        Next
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-16">
-              <div className="text-6xl mb-4">🔍</div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-                No businesses found
-              </h2>
-              <p className="text-gray-600 mb-8">
-                Be the first to list your business in this category!
-              </p>
-              <Button asChild>
-                <Link href="/pricing">List Your Business</Link>
-              </Button>
-            </div>
+          {categoryData.description && (
+            <p className="text-xl text-muted-foreground mb-6 max-w-2xl mx-auto">
+              {categoryData.description}
+            </p>
           )}
+
+          <div className="flex items-center justify-center gap-4">
+            <Badge variant="secondary" className="text-lg px-4 py-2">
+              {businesses.length}{" "}
+              {businesses.length === 1 ? "Business" : "Businesses"}
+            </Badge>
+            <Link href="/search">
+              <Button variant="outline">Search All Categories</Button>
+            </Link>
+          </div>
         </div>
-      </main>
-      <Footer />
+
+        {/* Businesses Grid */}
+        {paginatedBusinesses.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+              {paginatedBusinesses.map((business) => (
+                <BusinessCard
+                  key={business.id}
+                  business={{
+                    ...business,
+                    logo: business.logo,
+                    category: categoryData.name,
+                    rating: business.averageRating,
+                    reviewCount: business.reviewCount,
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center space-x-4">
+                {currentPage > 1 && (
+                  <Link href={`/c/${category}?page=${currentPage - 1}`}>
+                    <Button variant="outline">Previous</Button>
+                  </Link>
+                )}
+
+                <div className="flex space-x-2">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    const pageNum = i + 1;
+                    return (
+                      <Link
+                        key={pageNum}
+                        href={`/c/${category}?page=${pageNum}`}
+                      >
+                        <Button
+                          variant={
+                            pageNum === currentPage ? "default" : "outline"
+                          }
+                          size="sm"
+                        >
+                          {pageNum}
+                        </Button>
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                {currentPage < totalPages && (
+                  <Link href={`/c/${category}?page=${currentPage + 1}`}>
+                    <Button variant="outline">Next</Button>
+                  </Link>
+                )}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-16">
+            <h2 className="text-2xl font-semibold mb-4">No businesses found</h2>
+            <p className="text-muted-foreground mb-8">
+              There are currently no businesses in this category.
+            </p>
+            <Link href="/search">
+              <Button>Browse All Businesses</Button>
+            </Link>
+          </div>
+        )}
+
+        {/* Call to Action */}
+        <div className="mt-16 text-center">
+          <div className="glass p-8 rounded-2xl border-0 shadow-modern-lg max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold mb-4">
+              Own a {categoryData.name} Business?
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              Get your business listed on Director Value and reach thousands of
+              potential customers.
+            </p>
+            <Link href="/pricing">
+              <Button size="lg" className="gradient-primary">
+                List Your Business
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

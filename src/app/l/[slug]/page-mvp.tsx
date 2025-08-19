@@ -1,6 +1,10 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getSampleBusinessBySlug, getSampleCategoryById, getSampleReviewsByBusinessId } from "@/lib/sample-data";
+import {
+  getSampleBusinessBySlug,
+  getSampleCategoryById,
+  getSampleReviewsByBusinessId,
+} from "@/lib/sample-data";
 import { BusinessDetail } from "@/components/business/business-detail-mvp";
 
 interface BusinessPageProps {
@@ -21,7 +25,9 @@ export async function generateMetadata({
     };
   }
 
-  const category = business.categoryId ? getSampleCategoryById(business.categoryId) : null;
+  const category = business.categoryId
+    ? getSampleCategoryById(business.categoryId)
+    : null;
 
   return {
     title: `${business.name}${
@@ -42,7 +48,9 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
   }
 
   // Get category and reviews
-  const category = business.categoryId ? getSampleCategoryById(business.categoryId) : null;
+  const category = business.categoryId
+    ? getSampleCategoryById(business.categoryId)
+    : null;
   const reviews = getSampleReviewsByBusinessId(business.id);
 
   // Prepare business data for component

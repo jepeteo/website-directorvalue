@@ -14,31 +14,21 @@ import {
 import { Card } from "@/components/ui/card";
 import { Search, MapPin } from "lucide-react";
 
+import { getSampleCategories } from "@/lib/sample-data";
+
 interface SearchFormProps {
   className?: string;
   size?: "default" | "large";
 }
-
-const CATEGORIES = [
-  "Technology",
-  "Healthcare",
-  "Education",
-  "Finance",
-  "Retail",
-  "Food & Beverage",
-  "Automotive",
-  "Real Estate",
-  "Legal",
-  "Marketing",
-  "Construction",
-  "Entertainment",
-];
 
 export function SearchForm({ className, size = "default" }: SearchFormProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState("");
+
+  // Get categories from sample data
+  const categories = getSampleCategories();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,9 +99,9 @@ export function SearchForm({ className, size = "default" }: SearchFormProps) {
               </SelectTrigger>
               <SelectContent className="border-2 border-border rounded-xl">
                 <SelectItem value="all">All categories</SelectItem>
-                {CATEGORIES.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.slug}>
+                    {cat.icon} {cat.name}
                   </SelectItem>
                 ))}
               </SelectContent>
