@@ -16,48 +16,10 @@ import {
   Share2,
 } from "lucide-react";
 
+import { BusinessWithExtras } from "@/lib/business-service";
+
 interface BusinessDetailProps {
-  business: {
-    id: string;
-    name: string;
-    slug: string;
-    description: string;
-    email?: string;
-    phone?: string;
-    website?: string;
-    addressLine1?: string;
-    city?: string;
-    state?: string;
-    postalCode?: string;
-    country?: string;
-    logo?: string;
-    images?: string[];
-    services?: string[];
-    tags?: string[];
-    workingHours?: Record<
-      string,
-      { open?: string; close?: string; closed?: boolean }
-    >;
-    planType: "FREE_TRIAL" | "BASIC" | "PRO" | "VIP";
-    status: string;
-    averageRating?: number;
-    reviewCount?: number;
-    category?: {
-      id: string;
-      name: string;
-      slug: string;
-      description?: string;
-      icon?: string;
-    } | null;
-    reviews?: Array<{
-      id: string;
-      rating: number;
-      title?: string;
-      content?: string;
-      userName?: string;
-      createdAt?: string;
-    }>;
-  };
+  business: BusinessWithExtras;
 }
 
 export function BusinessDetail({ business }: BusinessDetailProps) {
@@ -105,7 +67,9 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
           <div key={day} className="flex justify-between">
             <span className="font-medium">{dayNames[index]}</span>
             <span>
-              {hours.closed ? "Closed" : `${hours.open} - ${hours.close}`}
+              {!hours || !hours.open || !hours.close
+                ? "Closed"
+                : `${hours.open} - ${hours.close}`}
             </span>
           </div>
         );
@@ -176,14 +140,14 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
               </div>
 
               {/* Rating */}
-              {business.averageRating && (
+              {business.rating && (
                 <div className="flex items-center gap-2">
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
                         className={`h-5 w-5 ${
-                          i < Math.floor(business.averageRating || 0)
+                          i < Math.floor(business.rating || 0)
                             ? "text-yellow-400 fill-current"
                             : "text-gray-300"
                         }`}
@@ -191,7 +155,7 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
                     ))}
                   </div>
                   <span className="font-semibold">
-                    {business.averageRating.toFixed(1)}
+                    {business.rating.toFixed(1)}
                   </span>
                   <span className="text-muted-foreground">
                     ({business.reviewCount}{" "}
@@ -288,7 +252,7 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
                               ))}
                             </div>
                             <span className="font-medium">
-                              {review.userName}
+                              {review.user?.name || "Anonymous User"}
                             </span>
                           </div>
                           {review.title && (
@@ -303,9 +267,9 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
                           </span>
                         )}
                       </div>
-                      {review.content && (
+                      {review.comment && (
                         <p className="text-muted-foreground">
-                          {review.content}
+                          {review.comment}
                         </p>
                       )}
                     </div>

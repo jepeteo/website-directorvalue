@@ -1,10 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import {
-  getSampleBusinessBySlug,
-  getSampleCategoryById,
-  getSampleReviewsByBusinessId,
-} from "@/lib/sample-data";
+import { getBusinessBySlug } from "@/lib/business-service";
 import { BusinessDetail } from "@/components/business/business-detail";
 
 interface BusinessPageProps {
@@ -17,7 +13,7 @@ export async function generateMetadata({
   params,
 }: BusinessPageProps): Promise<Metadata> {
   const resolvedParams = await params;
-  const business = getSampleBusinessBySlug(resolvedParams.slug);
+  const business = await getBusinessBySlug(resolvedParams.slug);
 
   if (!business) {
     return {
@@ -25,13 +21,9 @@ export async function generateMetadata({
     };
   }
 
-  const category = business.categoryId
-    ? getSampleCategoryById(business.categoryId)
-    : null;
-
   return {
     title: `${business.name}${
-      category ? ` - ${category.name}` : ""
+      business.category ? ` - ${business.category.name}` : ""
     } | Director Value`,
     description:
       business.description?.substring(0, 160) ||
@@ -41,29 +33,16 @@ export async function generateMetadata({
 
 export default async function BusinessPage({ params }: BusinessPageProps) {
   const resolvedParams = await params;
-  const business = getSampleBusinessBySlug(resolvedParams.slug);
+  const business = await getBusinessBySlug(resolvedParams.slug);
 
   if (!business || business.status !== "ACTIVE") {
     notFound();
   }
 
-  // Get category and reviews
-  const category = business.categoryId
-    ? getSampleCategoryById(business.categoryId)
-    : null;
-  const reviews = getSampleReviewsByBusinessId(business.id);
-
-  // Prepare business data for component
-  const businessWithExtras = {
-    ...business,
-    category,
-    reviews,
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
       <div className="container mx-auto px-4 py-8">
-        <BusinessDetail business={businessWithExtras} />
+        <BusinessDetail business={business} />
       </div>
     </div>
   );

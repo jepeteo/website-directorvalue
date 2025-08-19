@@ -11,13 +11,12 @@ interface BusinessCardProps {
     slug: string;
     description?: string | null;
     logo?: string | null;
-    category?: string;
+    category?: string | { name: string } | null;
     city?: string | null;
     country?: string | null;
     planType: "FREE_TRIAL" | "BASIC" | "PRO" | "VIP";
     rating?: number;
     reviewCount?: number;
-    isOpen?: boolean;
   };
   className?: string;
 }
@@ -28,14 +27,19 @@ export function BusinessCard({ business, className }: BusinessCardProps) {
     slug,
     description,
     logo,
-    category,
     city,
     country,
     planType,
     rating,
     reviewCount = 0,
-    isOpen,
   } = business;
+
+  // Get category name from the category object or fallback string
+  const categoryName = business.category
+    ? typeof business.category === "object"
+      ? business.category.name
+      : business.category
+    : "";
 
   const location = [city, country].filter(Boolean).join(", ");
 
@@ -146,22 +150,15 @@ export function BusinessCard({ business, className }: BusinessCardProps) {
                 <h3 className="font-semibold text-lg text-foreground truncate leading-tight">
                   {name}
                 </h3>
-                {category && (
+                {categoryName && (
                   <p className="text-sm text-muted-foreground capitalize font-medium">
-                    {category}
+                    {categoryName}
                   </p>
                 )}
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {getPlanBadge()}
-                {isOpen !== undefined && (
-                  <Badge
-                    variant={isOpen ? "default" : "secondary"}
-                    className={isOpen ? "bg-success hover:bg-success/90" : ""}
-                  >
-                    {isOpen ? "Open" : "Closed"}
-                  </Badge>
-                )}
+                {/* isOpen status removed for Phase 2 - will implement in future */}
               </div>
             </div>
 
