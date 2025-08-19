@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend only if API key is available
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 interface BusinessStatusEmailData {
   businessId: string;
@@ -231,6 +232,10 @@ export async function sendBusinessStatusEmail(data: BusinessStatusEmailData) {
   }
 
   try {
+    if (!resend) {
+      throw new Error('Resend service not initialized - missing API key');
+    }
+
     const { data, error } = await resend.emails.send({
       from: 'Director Value <noreply@directorvalue.com>',
       to: [ownerEmail],
@@ -301,6 +306,10 @@ export async function sendWelcomeEmail(data: WelcomeEmailData) {
   `;
 
   try {
+    if (!resend) {
+      throw new Error('Resend service not initialized - missing API key');
+    }
+
     const { data, error } = await resend.emails.send({
       from: 'Director Value <welcome@directorvalue.com>',
       to: [userEmail],
@@ -359,6 +368,10 @@ export async function sendContactFormRelay(data: ContactFormData) {
   `;
 
   try {
+    if (!resend) {
+      throw new Error('Resend service not initialized - missing API key');
+    }
+
     const { data, error } = await resend.emails.send({
       from: 'Director Value <contact@directorvalue.com>',
       to: [businessEmail],
