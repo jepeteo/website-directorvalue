@@ -108,7 +108,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/dashboard/business/add"
+                  href="/dashboard/businesses/new"
                   className="text-gray-400 hover:text-white transition-colors duration-200 hover:translate-x-1 inline-block"
                 >
                   List Your Business

@@ -145,7 +145,7 @@ export function BusinessRegistrationForm() {
         description: "Your business has been submitted for review.",
       });
 
-      router.push(`/dashboard/business/${business.id}`);
+      router.push(`/dashboard/businesses/${business.id}`);
     } catch (error) {
       console.error("Registration error:", error);
       toast({

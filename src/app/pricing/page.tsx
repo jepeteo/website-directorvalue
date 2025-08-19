@@ -136,7 +136,7 @@ export default function PricingPage() {
                       }`}
                       asChild
                     >
-                      <Link href="/dashboard/business/add">{plan.cta}</Link>
+                      <Link href="/dashboard/businesses/new">{plan.cta}</Link>
                     </Button>
                   </div>
 
@@ -225,7 +225,7 @@ export default function PricingPage() {
                     asChild
                     className="bg-white text-primary hover:bg-gray-100 px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
                   >
-                    <Link href="/dashboard/business/add">
+                    <Link href="/dashboard/businesses/new">
                       🚀 Start Your Free Trial
                     </Link>
                   </Button>

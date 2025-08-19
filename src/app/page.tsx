@@ -253,7 +253,7 @@ export default async function HomePage() {
                 variant="outline"
                 className="border-2 border-white/80 bg-transparent text-white hover:bg-white hover:text-primary px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-1 backdrop-blur-sm"
               >
-                <Link href="/dashboard/business/add">Add Your Business</Link>
+                <Link href="/dashboard/businesses/new">Add Your Business</Link>
               </Button>
             </div>
 
