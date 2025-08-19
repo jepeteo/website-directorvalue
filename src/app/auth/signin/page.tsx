@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { SignInForm } from "@/components/auth/signin-form";
 import { Button } from "@/components/ui/button";
