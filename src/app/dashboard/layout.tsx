@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 
 export const metadata: Metadata = {
   title: "Dashboard - Director Value",
@@ -39,7 +40,15 @@ export default async function DashboardLayout({
               </div>
             </div>
           </div>
-          {children}
+          <div className="flex gap-8">
+            <aside className="w-64 flex-shrink-0">
+              <div className="bg-muted/20 rounded-lg p-4">
+                <h2 className="text-lg font-semibold mb-4">Dashboard</h2>
+                <DashboardNav />
+              </div>
+            </aside>
+            <main className="flex-1">{children}</main>
+          </div>
         </main>
         <Footer />
       </div>
@@ -49,7 +58,17 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <main className="container mx-auto px-4 py-8">{children}</main>
+      <main className="container mx-auto px-4 py-8">
+        <div className="flex gap-8">
+          <aside className="w-64 flex-shrink-0">
+            <div className="bg-muted/20 rounded-lg p-4">
+              <h2 className="text-lg font-semibold mb-4">Dashboard</h2>
+              <DashboardNav />
+            </div>
+          </aside>
+          <main className="flex-1">{children}</main>
+        </div>
+      </main>
       <Footer />
     </div>
   );

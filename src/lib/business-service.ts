@@ -1,4 +1,7 @@
 import { prisma } from './prisma';
+import type { Prisma } from '@prisma/client';
+
+type WorkingHours = Record<string, { open: string; close: string }>;
 
 // Type definitions matching actual Prisma schema
 export interface Business {
@@ -210,7 +213,36 @@ export async function searchBusinesses({
   };
 }
 
-// Get business by slug
+// Get business by ID (for owner verification)
+export async function getBusinessById(id: string) {
+  return prisma.business.findUnique({
+    where: { id },
+    include: {
+      category: true,
+      owner: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+        },
+      },
+      reviews: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      },
+    },
+  });
+}
 export async function getBusinessBySlug(slug: string): Promise<BusinessWithExtras | null> {
   const business = await prisma.business.findUnique({
     where: { slug, status: 'ACTIVE' },
@@ -436,4 +468,168 @@ export async function getBusinessStats() {
     categories,
     reviews,
   };
+}
+
+// Business Owner Dashboard Functions
+
+// Get businesses owned by a user
+export async function getBusinessesByOwner(ownerId: string) {
+  const businesses = await prisma.business.findMany({
+    where: { ownerId },
+    include: {
+      category: true,
+      reviews: {
+        where: { isHidden: false },
+        select: {
+          rating: true,
+        },
+      },
+      _count: {
+        select: {
+          reviews: {
+            where: { isHidden: false },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  // Calculate ratings for each business
+  return businesses.map((business: any) => {
+    const reviews = business.reviews || [];
+    const reviewCount = reviews.length;
+    const averageRating = reviewCount > 0 
+      ? reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviewCount 
+      : 0;
+
+    return {
+      ...business,
+      rating: Math.round(averageRating * 10) / 10,
+      reviewCount,
+    };
+  });
+}
+
+// Get business owner dashboard stats
+export async function getOwnerDashboardStats(ownerId: string) {
+  const [totalBusinesses, activeBusinesses, totalReviews, totalViews] = await Promise.all([
+    prisma.business.count({ where: { ownerId } }),
+    prisma.business.count({ where: { ownerId, status: 'ACTIVE' } }),
+    prisma.review.count({
+      where: {
+        business: { ownerId },
+        isHidden: false,
+      },
+    }),
+    // For now, we'll simulate views since we don't have analytics yet
+    Promise.resolve(0),
+  ]);
+
+  return {
+    totalBusinesses,
+    activeBusinesses,
+    totalReviews,
+    totalViews,
+  };
+}
+
+// Create or update business for owner
+export async function createBusinessForOwner({
+  ownerId,
+  name,
+  slug,
+  description,
+  email,
+  phone,
+  website,
+  addressLine1,
+  addressLine2,
+  city,
+  state,
+  postalCode,
+  country,
+  categoryId,
+  services = [],
+  tags = [],
+  workingHours = null,
+  planType = 'FREE_TRIAL',
+}: {
+  ownerId: string;
+  name: string;
+  slug: string;
+  description?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  categoryId?: string;
+  services?: string[];
+  tags?: string[];
+  workingHours?: any;
+  planType?: 'FREE_TRIAL' | 'BASIC' | 'PRO' | 'VIP';
+}) {
+  return prisma.business.create({
+    data: {
+      ownerId,
+      name,
+      slug,
+      description,
+      email,
+      phone,
+      website,
+      addressLine1,
+      addressLine2,
+      city,
+      state,
+      postalCode,
+      country,
+      categoryId,
+      services,
+      tags,
+      workingHours: workingHours || undefined,
+      planType,
+      status: 'ACTIVE', // VIP users get immediate activation
+      images: [],
+    },
+    include: {
+      category: true,
+    },
+  });
+}
+
+// Update business for owner
+export async function updateBusinessForOwner({
+  businessId,
+  ownerId,
+  ...updateData
+}: {
+  businessId: string;
+  ownerId: string;
+  [key: string]: any;
+}) {
+  // Verify ownership
+  const business = await prisma.business.findFirst({
+    where: {
+      id: businessId,
+      ownerId,
+    },
+  });
+
+  if (!business) {
+    throw new Error('Business not found or access denied');
+  }
+
+  return prisma.business.update({
+    where: { id: businessId },
+    data: updateData,
+    include: {
+      category: true,
+    },
+  });
 }
