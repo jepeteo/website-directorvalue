@@ -27,6 +27,7 @@ import {
   XCircle,
   Clock,
   Star,
+  Building2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -313,6 +314,12 @@ export async function BusinessTable({
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href={`/admin/businesses/${business.id}`}>
+                            <Building2 className="h-4 w-4 mr-2" />
+                            View Details
+                          </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href={`/l/${business.slug}`} target="_blank">
                             <Eye className="h-4 w-4 mr-2" />

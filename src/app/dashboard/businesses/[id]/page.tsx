@@ -19,12 +19,13 @@ import {
 } from "lucide-react";
 
 interface BusinessPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function BusinessPage({ params }: BusinessPageProps) {
+  const { id } = await params;
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -32,7 +33,7 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
   }
 
   try {
-    const business = await getBusinessById(params.id);
+    const business = await getBusinessById(id);
 
     if (!business) {
       notFound();

@@ -5,19 +5,19 @@ import { BusinessForm } from "@/components/business/business-form";
 import { getCategories } from "@/lib/db";
 import { getBusinessById } from "@/lib/business-service";
 
-interface EditBusinessPageProps {
+interface AdminEditBusinessPageProps {
   params: Promise<{
     id: string;
   }>;
 }
 
-export default async function EditBusinessPage({
+export default async function AdminEditBusinessPage({
   params,
-}: EditBusinessPageProps) {
+}: AdminEditBusinessPageProps) {
   const { id } = await params;
   const session = await auth();
 
-  if (!session?.user?.id) {
+  if (!session?.user?.id || session.user.role !== "ADMIN") {
     redirect("/auth/signin");
   }
 
@@ -31,26 +31,27 @@ export default async function EditBusinessPage({
       notFound();
     }
 
-    // Check if the user owns this business
-    if (business.ownerId !== session.user.id) {
-      redirect("/dashboard/businesses");
-    }
-
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Edit Business
+            Edit Business (Admin)
           </h1>
           <p className="text-gray-600">
-            Update your business information to keep customers informed.
+            Administrative edit for business: {business.name}
           </p>
+          <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p className="text-sm text-yellow-800">
+              <strong>Admin Notice:</strong> You are editing this business as an
+              administrator. Changes will be logged for audit purposes.
+            </p>
+          </div>
         </div>
 
         <Suspense fallback={<div>Loading...</div>}>
           <BusinessForm
             categories={categories}
-            userId={session.user.id}
+            userId={business.ownerId}
             mode="edit"
             businessId={id}
             initialData={business}
@@ -59,7 +60,7 @@ export default async function EditBusinessPage({
       </div>
     );
   } catch (error) {
-    console.error("Error loading business:", error);
+    console.error("Error loading business for admin edit:", error);
     notFound();
   }
 }

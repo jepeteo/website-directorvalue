@@ -65,9 +65,11 @@ enum PlanType {
 
 enum ListingStatus {
   DRAFT
+  PENDING
   ACTIVE
-  DEACTIVATED
   SUSPENDED
+  REJECTED
+  DEACTIVATED
 }
 
 model User {
@@ -80,11 +82,12 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts  Account[]
-  sessions  Session[]
-  businesses Business[]
-  reviews   Review[]
-  abuseReports AbuseReport[]
+  accounts       Account[]
+  sessions       Session[]
+  businesses     Business[]
+  reviews        Review[]
+  abuseReports   AbuseReport[]
+  adminActions   AdminActionLog[]
 }
 
 model Business {
@@ -245,4 +248,23 @@ model Lead {
   
   @@index([businessId])
   @@index([source])
+}
+
+// Admin Action Log model for audit trail
+model AdminActionLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  action     String   // e.g., "BUSINESS_STATUS_CHANGE", "USER_SUSPEND", "REVIEW_MODERATE"
+  targetType String   // e.g., "BUSINESS", "USER", "REVIEW"
+  targetId   String
+  details    Json?    // Additional action details (previous values, reasons, etc.)
+  createdAt  DateTime @default(now())
+  
+  // Relations
+  admin User @relation(fields: [adminId], references: [id])
+  
+  @@index([adminId])
+  @@index([action])
+  @@index([targetType])
+  @@index([createdAt])
 }
