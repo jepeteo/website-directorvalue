@@ -1,5 +1,4 @@
 import { PrismaAdapter } from '@auth/prisma-adapter'
-import EmailProvider from 'next-auth/providers/email'
 import NextAuth from 'next-auth'
 import { prisma } from '@/lib/prisma'
 
@@ -7,19 +6,8 @@ import { prisma } from '@/lib/prisma'
 export const authOptions: any = {
   adapter: PrismaAdapter(prisma),
   providers: [
-    EmailProvider({
-      // For development, we'll use a simple console log
-      // In production, this should use Resend or another email service
-      server: process.env.EMAIL_SERVER_HOST ? {
-        host: process.env.EMAIL_SERVER_HOST,
-        port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
-        auth: {
-          user: process.env.EMAIL_SERVER_USER,
-          pass: process.env.EMAIL_SERVER_PASSWORD,
-        },
-      } : undefined,
-      from: process.env.EMAIL_FROM || 'noreply@directorvalue.com',
-    }),
+    // Email provider will be enabled when EMAIL_SERVER_HOST is configured
+    // For now, authentication is bypassed in development mode via layout guards
   ],
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

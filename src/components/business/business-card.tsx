@@ -43,14 +43,31 @@ export function BusinessCard({ business, className }: BusinessCardProps) {
     switch (planType) {
       case "VIP":
         return (
-          <Badge variant="default" className="bg-yellow-500 text-white">
-            VIP
+          <Badge
+            variant="default"
+            className="bg-gradient-to-r from-primary to-secondary text-white font-semibold border-0 shadow-sm"
+          >
+            ⭐ VIP
           </Badge>
         );
       case "PRO":
-        return <Badge variant="secondary">Pro</Badge>;
+        return (
+          <Badge
+            variant="secondary"
+            className="bg-secondary text-secondary-foreground border-secondary"
+          >
+            Pro
+          </Badge>
+        );
       case "BASIC":
-        return <Badge variant="outline">Basic</Badge>;
+        return (
+          <Badge
+            variant="outline"
+            className="border-border text-muted-foreground"
+          >
+            Basic
+          </Badge>
+        );
       default:
         return null;
     }
@@ -95,12 +112,12 @@ export function BusinessCard({ business, className }: BusinessCardProps) {
 
   return (
     <Card
-      className={`overflow-hidden hover:shadow-lg transition-shadow ${className}`}
+      className={`overflow-hidden card-hover border-0 shadow-modern glass ${className}`}
     >
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
           {/* Business Logo */}
-          <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
+          <div className="w-16 h-16 bg-gradient-to-br from-muted to-muted/50 rounded-xl flex-shrink-0 overflow-hidden shadow-inner">
             {logo ? (
               <Image
                 src={logo}
@@ -110,7 +127,7 @@ export function BusinessCard({ business, className }: BusinessCardProps) {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                 <svg
                   className="w-8 h-8"
                   fill="currentColor"
@@ -124,13 +141,15 @@ export function BusinessCard({ business, className }: BusinessCardProps) {
 
           {/* Business Info */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex items-start justify-between gap-2 mb-3">
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-lg text-gray-900 truncate">
+                <h3 className="font-semibold text-lg text-foreground truncate leading-tight">
                   {name}
                 </h3>
                 {category && (
-                  <p className="text-sm text-gray-500 capitalize">{category}</p>
+                  <p className="text-sm text-muted-foreground capitalize font-medium">
+                    {category}
+                  </p>
                 )}
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
@@ -138,7 +157,7 @@ export function BusinessCard({ business, className }: BusinessCardProps) {
                 {isOpen !== undefined && (
                   <Badge
                     variant={isOpen ? "default" : "secondary"}
-                    className={isOpen ? "bg-green-500" : ""}
+                    className={isOpen ? "bg-success hover:bg-success/90" : ""}
                   >
                     {isOpen ? "Open" : "Closed"}
                   </Badge>

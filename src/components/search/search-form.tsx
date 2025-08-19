@@ -59,31 +59,39 @@ export function SearchForm({ className, size = "default" }: SearchFormProps) {
   const isLarge = size === "large";
 
   return (
-    <Card className={`p-6 ${className}`}>
-      <form onSubmit={handleSearch} className="space-y-4">
+    <Card className={`border-0 shadow-modern-lg glass ${className}`}>
+      <form onSubmit={handleSearch} className="space-y-6 p-8">
         <div
-          className={`grid gap-4 ${
+          className={`grid gap-6 ${
             isLarge ? "md:grid-cols-3" : "grid-cols-1 sm:grid-cols-3"
           }`}
         >
-          <div className="space-y-2">
-            <label htmlFor="search" className="text-sm font-medium">
+          <div className="space-y-3">
+            <label
+              htmlFor="search"
+              className="text-sm font-semibold text-foreground"
+            >
               What are you looking for?
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
               <Input
                 id="search"
                 placeholder="e.g. restaurants, plumbers, dentists..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className={`${isLarge ? "h-12" : ""} pl-10`}
+                className={`${
+                  isLarge ? "h-14 text-lg" : "h-12"
+                } pl-12 border-2 border-border focus:border-accent rounded-xl transition-all duration-200 bg-card`}
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="category" className="text-sm font-medium">
+          <div className="space-y-3">
+            <label
+              htmlFor="category"
+              className="text-sm font-semibold text-foreground"
+            >
               Category
             </label>
             <Select
@@ -92,10 +100,14 @@ export function SearchForm({ className, size = "default" }: SearchFormProps) {
                 setCategory(value === "all" ? "" : value)
               }
             >
-              <SelectTrigger className={isLarge ? "h-12" : ""}>
+              <SelectTrigger
+                className={`${
+                  isLarge ? "h-14" : "h-12"
+                } border-2 border-border focus:border-accent rounded-xl bg-card`}
+              >
                 <SelectValue placeholder="All categories" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="border-2 border-border rounded-xl">
                 <SelectItem value="all">All categories</SelectItem>
                 {CATEGORIES.map((cat) => (
                   <SelectItem key={cat} value={cat}>
@@ -106,18 +118,23 @@ export function SearchForm({ className, size = "default" }: SearchFormProps) {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="location" className="text-sm font-medium">
+          <div className="space-y-3">
+            <label
+              htmlFor="location"
+              className="text-sm font-semibold text-foreground"
+            >
               Location
             </label>
             <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
               <Input
                 id="location"
                 placeholder="City, country..."
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className={`${isLarge ? "h-12" : ""} pl-10`}
+                className={`${
+                  isLarge ? "h-14 text-lg" : "h-12"
+                } pl-12 border-2 border-border focus:border-accent rounded-xl transition-all duration-200 bg-card`}
               />
             </div>
           </div>
@@ -125,10 +142,12 @@ export function SearchForm({ className, size = "default" }: SearchFormProps) {
 
         <Button
           type="submit"
-          className={`w-full ${isLarge ? "h-12 text-lg" : ""}`}
+          className={`w-full ${
+            isLarge ? "h-14 text-lg" : "h-12"
+          } gradient-teal hover:opacity-90 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 text-white`}
           size={isLarge ? "lg" : "default"}
         >
-          <Search className="w-4 h-4 mr-2" />
+          <Search className="w-5 h-5 mr-2" />
           Search Businesses
         </Button>
       </form>

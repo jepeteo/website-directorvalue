@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CSS Debug Test</title>
+    <style>
+      :root {
+        --background: 210 40% 97%;
+        --foreground: 210 11% 24%;
+        --border: 214 20% 91%;
+      }
+
+      body {
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+        border: 1px solid hsl(var(--border));
+        margin: 20px;
+        padding: 20px;
+        font-family: system-ui;
+      }
+
+      .test-box {
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+        border: 2px solid hsl(var(--border));
+        padding: 20px;
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CSS Variable Test</h1>
+    <p>This should have:</p>
+    <ul>
+      <li>Light gray background (rgb(245, 247, 250))</li>
+      <li>Dark gray text (rgb(44, 62, 80))</li>
+      <li>Light gray border (rgb(226, 232, 240))</li>
+    </ul>
+
+    <div class="test-box">Test box with same styles</div>
+
+    <script>
+      console.log("CSS Variables:");
+      console.log(
+        "--background:",
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "--background"
+        )
+      );
+      console.log(
+        "--foreground:",
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "--foreground"
+        )
+      );
+      console.log(
+        "--border:",
+        getComputedStyle(document.documentElement).getPropertyValue("--border")
+      );
+
+      console.log("Computed styles:");
+      const bodyStyle = getComputedStyle(document.body);
+      console.log("background-color:", bodyStyle.backgroundColor);
+      console.log("color:", bodyStyle.color);
+      console.log("border-color:", bodyStyle.borderColor);
+    </script>
+  </body>
+</html>

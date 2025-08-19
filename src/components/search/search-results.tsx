@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { BusinessCard } from "@/components/business/business-card";
 import { Button } from "@/components/ui/button";
@@ -143,7 +143,7 @@ export function SearchResults() {
     router.push(`${pathname}?${newSearchParams.toString()}`);
   };
 
-  const performSearch = async () => {
+  const performSearch = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams(searchParams.toString());
@@ -160,7 +160,7 @@ export function SearchResults() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
 
   const handleSearch = () => {
     updateURL({
@@ -198,7 +198,7 @@ export function SearchResults() {
   // Perform search when URL params change
   useEffect(() => {
     performSearch();
-  }, [searchParams]);
+  }, [searchParams, performSearch]);
 
   // Update form state when URL params change
   useEffect(() => {

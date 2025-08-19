@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -39,37 +39,40 @@ export function ReviewsList({
   const [totalPages, setTotalPages] = useState(1);
   const [totalReviews, setTotalReviews] = useState(0);
 
-  const fetchReviews = async (page: number = 1) => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `/api/reviews?businessId=${businessId}&page=${page}&limit=5`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setReviews(data.reviews);
-        setCurrentPage(data.pagination.page);
-        setTotalPages(data.pagination.totalPages);
-        setTotalReviews(data.pagination.totalReviews);
+  const fetchReviews = useCallback(
+    async (page: number = 1) => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `/api/reviews?businessId=${businessId}&page=${page}&limit=5`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setReviews(data.reviews);
+          setCurrentPage(data.pagination.page);
+          setTotalPages(data.pagination.totalPages);
+          setTotalReviews(data.pagination.totalReviews);
+        }
+      } catch (error) {
+        console.error("Failed to fetch reviews:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to fetch reviews:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [businessId]
+  );
 
   useEffect(() => {
     if (refreshTrigger > 0) {
       fetchReviews(1);
     }
-  }, [refreshTrigger]);
+  }, [refreshTrigger, fetchReviews]);
 
   useEffect(() => {
     if (initialReviews.length === 0) {
       fetchReviews(1);
     }
-  }, [businessId]);
+  }, [businessId, fetchReviews, initialReviews.length]);
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {

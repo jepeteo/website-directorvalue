@@ -1,0 +1,56 @@
+import { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
+
+export const metadata: Metadata = {
+  title: "Dashboard - Director Value",
+  description: "Manage your business listings on Director Value",
+};
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const session = await auth();
+
+  // Development bypass for testing
+  const isDevelopment = process.env.NODE_ENV === "development";
+
+  // Check if user is authenticated
+  if (!session?.user) {
+    if (!isDevelopment) {
+      redirect("/auth/signin");
+    }
+    // In development, show warning and continue
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+            <div className="flex">
+              <div className="ml-3">
+                <p className="text-sm text-yellow-700">
+                  <strong>Development Mode:</strong> Dashboard access without
+                  authentication. This will not work in production.
+                </p>
+              </div>
+            </div>
+          </div>
+          {children}
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+      <Header />
+      <main className="container mx-auto px-4 py-8">{children}</main>
+      <Footer />
+    </div>
+  );
+}

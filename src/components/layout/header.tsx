@@ -4,11 +4,11 @@ import { UserMenu } from "@/components/auth/user-menu";
 
 export function Header() {
   return (
-    <header className="border-b bg-white sticky top-0 z-50">
+    <header className="glass sticky top-0 z-50 border-b border-border">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 relative">
+          <Link href="/" className="flex items-center space-x-3 group">
+            <div className="w-10 h-10 relative group-hover:scale-105 transition-transform">
               <Image
                 src="/directorvalue-logo.webp"
                 alt="Director Value Logo"
@@ -18,36 +18,45 @@ export function Header() {
               />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
+              <h1 className="text-xl font-bold text-foreground">
                 Director Value
               </h1>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-muted-foreground font-medium">
                 Everything you need worldwide
               </span>
             </div>
           </Link>
 
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/search" className="text-gray-600 hover:text-gray-900">
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link
+              href="/search"
+              className="text-muted-foreground hover:text-foreground font-medium transition-colors"
+            >
               Browse
             </Link>
             <Link
               href="/categories"
-              className="text-gray-600 hover:text-gray-900"
+              className="text-muted-foreground hover:text-foreground font-medium transition-colors"
             >
               Categories
             </Link>
-            <Link href="/about" className="text-gray-600 hover:text-gray-900">
+            <Link
+              href="/about"
+              className="text-muted-foreground hover:text-foreground font-medium transition-colors"
+            >
               About
             </Link>
-            <Link href="/pricing" className="text-gray-600 hover:text-gray-900">
+            <Link
+              href="/pricing"
+              className="text-muted-foreground hover:text-foreground font-medium transition-colors"
+            >
               Pricing
             </Link>
             <UserMenu />
           </nav>
 
           {/* Mobile menu button - TODO: Implement mobile menu */}
-          <button className="md:hidden p-2">
+          <button className="md:hidden p-2 hover:bg-muted rounded-lg transition-colors">
             <svg
               className="w-6 h-6"
               fill="none"
