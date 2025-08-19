@@ -252,8 +252,14 @@ export async function getBusinessesByCategory({
   };
 }
 
+export type CategoryWithCount = Category & {
+  _count: {
+    businesses: number;
+  };
+};
+
 // Get all categories
-export async function getCategories() {
+export async function getCategories(): Promise<CategoryWithCount[]> {
   return prisma.category.findMany({
     orderBy: { sortOrder: 'asc' },
     include: {

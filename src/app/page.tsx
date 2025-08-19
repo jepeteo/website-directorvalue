@@ -4,43 +4,21 @@ import { SearchForm } from "@/components/search/search-form";
 import { BusinessCard } from "@/components/business/business-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getBusinesses, getCategories, getBusinessStats } from "@/lib/db";
+import {
+  getFeaturedBusinesses,
+  getCategories,
+  getBusinessStats,
+  CategoryWithCount,
+} from "@/lib/business-service";
 import Link from "next/link";
-
-interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  icon?: string;
-  businessCount?: number;
-}
-
-interface FeaturedBusiness {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  logo?: string | null;
-  city?: string;
-  country?: string;
-  planType: "VIP" | "FREE_TRIAL" | "BASIC" | "PRO";
-  averageRating: number;
-  reviewCount: number;
-  category?: {
-    name: string;
-  };
-}
 
 export default async function HomePage() {
   // Fetch real data from database
-  const [businessesResult, categories, stats] = await Promise.all([
-    getBusinesses({ limit: 6 }), // Get top 6 businesses for featured section
+  const [featuredBusinesses, categories, stats] = await Promise.all([
+    getFeaturedBusinesses(6), // Get top 6 VIP businesses for featured section
     getCategories(),
     getBusinessStats(),
   ]);
-
-  const featuredBusinesses = businessesResult.businesses;
 
   return (
     <div className="min-h-screen bg-background">
@@ -80,7 +58,7 @@ export default async function HomePage() {
             </div>
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-primary mb-2">
-                {stats.totalReviews.toLocaleString()}+
+                {stats.reviews.toLocaleString()}+
               </div>
               <div className="text-muted-foreground">Customer Reviews</div>
             </div>
@@ -108,7 +86,7 @@ export default async function HomePage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {categories.slice(0, 6).map((category: Category) => (
+            {categories.slice(0, 6).map((category: CategoryWithCount) => (
               <Link
                 key={category.slug}
                 href={`/c/${category.slug}`}
@@ -126,7 +104,7 @@ export default async function HomePage() {
                       {category.description}
                     </p>
                     <div className="inline-flex items-center text-accent font-medium bg-accent/10 px-4 py-2 rounded-full">
-                      <span>{category.businessCount} businesses</span>
+                      <span>{category._count.businesses} businesses</span>
                       <svg
                         className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform"
                         fill="none"
@@ -176,7 +154,7 @@ export default async function HomePage() {
           {featuredBusinesses.length > 0 ? (
             <>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                {featuredBusinesses.map((business: FeaturedBusiness) => (
+                {featuredBusinesses.map((business) => (
                   <BusinessCard
                     key={business.id}
                     business={{
@@ -189,7 +167,7 @@ export default async function HomePage() {
                       city: business.city,
                       country: business.country,
                       planType: business.planType,
-                      rating: business.averageRating,
+                      rating: business.rating,
                       reviewCount: business.reviewCount,
                     }}
                   />
@@ -368,7 +346,7 @@ export default async function HomePage() {
             </div>
             <div className="group">
               <div className="text-4xl md:text-5xl font-bold text-accent mb-3 group-hover:scale-110 transition-transform duration-300">
-                {stats.totalReviews.toLocaleString()}+
+                {stats.reviews.toLocaleString()}+
               </div>
               <div className="text-muted-foreground font-medium">
                 Customer Reviews
@@ -376,7 +354,7 @@ export default async function HomePage() {
             </div>
             <div className="group">
               <div className="text-4xl md:text-5xl font-bold text-accent mb-3 group-hover:scale-110 transition-transform duration-300">
-                {stats.vipBusinesses}
+                {stats.activeBusinesses}
               </div>
               <div className="text-muted-foreground font-medium">
                 VIP Businesses
