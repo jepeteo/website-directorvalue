@@ -103,33 +103,6 @@ Since you already have Resend integrated:
 3. **Deploy** the changes
 4. **Sign in** at https://directorvalue.com/auth/signin
 
-### Option 2: Alternative Email Providers (If Needed)
-
-#### Gmail Setup
-```bash
-EMAIL_SERVER_HOST=smtp.gmail.com
-EMAIL_SERVER_PORT=587
-EMAIL_SERVER_USER=your-email@gmail.com
-EMAIL_SERVER_PASSWORD=your-app-password
-EMAIL_FROM=your-email@gmail.com
-```
-
-#### SendGrid Setup
-```bash
-EMAIL_SERVER_HOST=smtp.sendgrid.net
-EMAIL_SERVER_PORT=587
-EMAIL_SERVER_USER=apikey
-EMAIL_SERVER_PASSWORD=your_sendgrid_api_key
-EMAIL_FROM=noreply@directorvalue.com
-```
-1. **Connect to your production database**
-2. **Run the admin script locally** (connected to production DB):
-   ```bash
-   npm run admin add your-email@company.com "Your Name"
-   ```
-3. **Set up email auth** (Method 1 above)
-4. **Sign in** with magic link
-
 ## 🔒 Security Best Practices
 
 ### Admin User Management
