@@ -28,23 +28,15 @@ interface BusinessFormData {
   name: string;
   description: string;
   categoryId: string;
-  address: string;
+  addressLine1: string;
   city: string;
   state: string;
-  zipCode: string;
+  postalCode: string;
   country: string;
   phone: string;
   email: string;
   website: string;
-  hours: {
-    monday: { open: string; close: string; closed: boolean };
-    tuesday: { open: string; close: string; closed: boolean };
-    wednesday: { open: string; close: string; closed: boolean };
-    thursday: { open: string; close: string; closed: boolean };
-    friday: { open: string; close: string; closed: boolean };
-    saturday: { open: string; close: string; closed: boolean };
-    sunday: { open: string; close: string; closed: boolean };
-  };
+  slug: string;
 }
 
 const BUSINESS_CATEGORIES = [
@@ -80,15 +72,15 @@ export function BusinessRegistrationForm() {
     name: "",
     description: "",
     categoryId: "",
-    address: "",
+    addressLine1: "",
     city: "",
     state: "",
-    zipCode: "",
-    country: "United States",
+    postalCode: "",
+    country: "France",
     phone: "",
-    email: "",
+    email: session?.user?.email || "",
     website: "",
-    hours: DEFAULT_HOURS,
+    slug: "",
   });
 
   const updateFormData = (field: string, value: unknown) => {
@@ -98,23 +90,10 @@ export function BusinessRegistrationForm() {
     }));
   };
 
-  const updateHours = (day: string, field: string, value: unknown) => {
-    setFormData((prev) => ({
-      ...prev,
-      hours: {
-        ...prev.hours,
-        [day]: {
-          ...prev.hours[day as keyof typeof prev.hours],
-          [field]: value,
-        },
-      },
-    }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!session) {
+    if (!session?.user?.id) {
       toast({
         title: "Authentication Required",
         description: "Please sign in to register your business.",
@@ -126,16 +105,31 @@ export function BusinessRegistrationForm() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/business", {
+      // Generate slug from business name
+      const slug = formData.name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .trim();
+
+      const submitData = {
+        ...formData,
+        slug,
+        ownerId: session.user.id,
+      };
+
+      const response = await fetch("/api/businesses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to register business");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to register business");
       }
 
       const business = await response.json();
@@ -145,10 +139,18 @@ export function BusinessRegistrationForm() {
         description: "Your business has been submitted for review.",
       });
 
-      router.push(`/dashboard/businesses/${business.id}`);
+      router.push(`/dashboard/businesses`);
     } catch (error) {
       console.error("Registration error:", error);
       toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to register business. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
         title: "Error",
         description: "Failed to register business. Please try again.",
         variant: "destructive",
@@ -176,10 +178,10 @@ export function BusinessRegistrationForm() {
         return formData.name && formData.description && formData.categoryId;
       case 2:
         return (
-          formData.address &&
+          formData.addressLine1 &&
           formData.city &&
           formData.state &&
-          formData.zipCode
+          formData.postalCode
         );
       case 3:
         return formData.phone || formData.email;
@@ -279,11 +281,11 @@ export function BusinessRegistrationForm() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <Label htmlFor="address">Street Address *</Label>
+              <Label htmlFor="addressLine1">Street Address *</Label>
               <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) => updateFormData("address", e.target.value)}
+                id="addressLine1"
+                value={formData.addressLine1}
+                onChange={(e) => updateFormData("addressLine1", e.target.value)}
                 placeholder="123 Main Street"
                 required
               />
@@ -314,12 +316,12 @@ export function BusinessRegistrationForm() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="zipCode">ZIP Code *</Label>
+                <Label htmlFor="postalCode">Postal Code *</Label>
                 <Input
-                  id="zipCode"
-                  value={formData.zipCode}
-                  onChange={(e) => updateFormData("zipCode", e.target.value)}
-                  placeholder="12345"
+                  id="postalCode"
+                  value={formData.postalCode}
+                  onChange={(e) => updateFormData("postalCode", e.target.value)}
+                  placeholder="75001"
                   required
                 />
               </div>
