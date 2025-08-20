@@ -11,7 +11,7 @@ We've simplified the email setup to use **Resend for everything**:
 
 ### Required (Keep These):
 ```bash
-RESEND_API_KEY="re_QKnWjQPc_MhAvHWbSvsUiZfy7RcyMx6we"
+RESEND_API_KEY="your_resend_api_key_here"
 EMAIL_FROM="noreply@directorvalue.com"
 ```
 
@@ -20,7 +20,7 @@ EMAIL_FROM="noreply@directorvalue.com"
 In your Vercel environment variables, you only need:
 
 ```bash
-RESEND_API_KEY=re_QKnWjQPc_MhAvHWbSvsUiZfy7RcyMx6we
+RESEND_API_KEY=your_resend_api_key_here
 EMAIL_FROM=noreply@directorvalue.com
 ```
 

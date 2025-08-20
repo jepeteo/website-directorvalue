@@ -97,7 +97,7 @@ Since you already have Resend integrated:
 1. **✅ Already configured** - Resend API key is set up
 2. **Add to Vercel environment variables**:
    ```
-   RESEND_API_KEY=re_QKnWjQPc_MhAvHWbSvsUiZfy7RcyMx6we
+   RESEND_API_KEY=your_resend_api_key_here
    EMAIL_FROM=noreply@directorvalue.com
    ```
 3. **Deploy** the changes
