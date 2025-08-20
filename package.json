@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "npx prisma db push --force-reset && npm run db:seed",
-    "db:studio": "npx prisma studio"
+    "db:studio": "npx prisma studio",
+    "admin": "tsx scripts/admin-manager.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

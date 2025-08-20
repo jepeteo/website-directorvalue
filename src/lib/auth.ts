@@ -1,13 +1,23 @@
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import NextAuth from 'next-auth'
+import EmailProvider from 'next-auth/providers/email'
 import { prisma } from '@/lib/prisma'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const authOptions: any = {
   adapter: PrismaAdapter(prisma),
   providers: [
-    // Email provider will be enabled when EMAIL_SERVER_HOST is configured
-    // For now, authentication is bypassed in development mode via layout guards
+    EmailProvider({
+      server: {
+        host: process.env.EMAIL_SERVER_HOST,
+        port: process.env.EMAIL_SERVER_PORT ? parseInt(process.env.EMAIL_SERVER_PORT) : 587,
+        auth: {
+          user: process.env.EMAIL_SERVER_USER,
+          pass: process.env.EMAIL_SERVER_PASSWORD,
+        },
+      },
+      from: process.env.EMAIL_FROM,
+    }),
   ],
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
