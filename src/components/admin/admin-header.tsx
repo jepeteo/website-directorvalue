@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -135,7 +136,21 @@ export function AdminHeader({ user }: AdminHeaderProps) {
                 Help & Support
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">
+              <DropdownMenuItem
+                className="text-red-600 cursor-pointer"
+                onSelect={async (event) => {
+                  event.preventDefault();
+                  try {
+                    console.log("Admin signing out...");
+                    await signOut({
+                      callbackUrl: "/",
+                      redirect: true,
+                    });
+                  } catch (error) {
+                    console.error("Admin sign out error:", error);
+                  }
+                }}
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign out
               </DropdownMenuItem>

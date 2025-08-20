@@ -72,6 +72,11 @@ export function UserMenu() {
         <DropdownMenuItem asChild>
           <Link href="/dashboard">Dashboard</Link>
         </DropdownMenuItem>
+        {(user as ExtendedUser)?.role === "ADMIN" && (
+          <DropdownMenuItem asChild>
+            <Link href="/admin">Admin Panel</Link>
+          </DropdownMenuItem>
+        )}
         {(user as ExtendedUser)?.role === "BUSINESS_OWNER" && (
           <DropdownMenuItem asChild>
             <Link href="/dashboard/business">My Business</Link>
@@ -83,11 +88,17 @@ export function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="cursor-pointer"
-          onSelect={(event) => {
+          onSelect={async (event) => {
             event.preventDefault();
-            signOut({
-              callbackUrl: "/",
-            });
+            try {
+              console.log("Signing out...");
+              await signOut({
+                callbackUrl: "/",
+                redirect: true,
+              });
+            } catch (error) {
+              console.error("Sign out error:", error);
+            }
           }}
         >
           Sign out

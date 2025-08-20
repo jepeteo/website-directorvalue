@@ -11,20 +11,14 @@ export const authOptions: any = {
   adapter: PrismaAdapter(prisma),
   providers: [
     EmailProvider({
-      server: {
-        host: 'smtp.resend.com',
-        port: 587,
-        auth: {
-          user: 'resend',
-          pass: process.env.RESEND_API_KEY,
-        },
-      },
+      // Minimal server config required by NextAuth (not actually used)
+      server: 'smtp://dummy:dummy@localhost:587',
       from: process.env.EMAIL_FROM || 'noreply@directorvalue.com',
-      // Custom email sending using Resend API directly
-      async sendVerificationRequest({ identifier: email, url, provider }) {
+      // Use Resend API directly - no SMTP needed
+      async sendVerificationRequest({ identifier: email, url }) {
         try {
-          await resend.emails.send({
-            from: provider.from || 'noreply@directorvalue.com',
+          const result = await resend.emails.send({
+            from: process.env.EMAIL_FROM || 'noreply@directorvalue.com',
             to: email,
             subject: 'Sign in to Director Value',
             html: `
@@ -59,6 +53,8 @@ export const authOptions: any = {
             `,
             text: `Sign in to Director Value\n\nClick the link below to sign in to your account:\n${url}\n\nIf you didn't request this email, you can safely ignore it.\n\n© 2025 Director Value`,
           })
+          
+          console.log('Verification email sent successfully:', result)
         } catch (error) {
           console.error('Failed to send verification email:', error)
           throw new Error('Failed to send verification email')
@@ -68,15 +64,43 @@ export const authOptions: any = {
   ],
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    session: async ({ session, user }: { session: Record<string, any>; user: Record<string, any> }) => {
-      if (session?.user && user?.id) {
-        session.user.id = user.id
-        // Get user role from database
+    async signIn(params: any) {
+      console.log('signIn callback:', params);
+      return true;
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async jwt({ token, user, account, profile }: any) {
+      console.log('jwt callback:', { token, user, account, profile });
+      // If user is present (sign in), add user info to token
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+        token.email = user.email;
+        token.name = user.name;
+      } else if (token.email) {
+        // On subsequent calls, get fresh user data from database
         const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: { role: true },
-        })
-        session.user.role = dbUser?.role || 'VISITOR'
+          where: { email: token.email },
+          select: { id: true, role: true, name: true, email: true },
+        });
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.role = dbUser.role;
+          token.name = dbUser.name;
+        }
+      }
+      console.log('Updated JWT token:', token);
+      return token;
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    session: async ({ session, token }: { session: Record<string, any>; token: Record<string, any> }) => {
+      console.log('session callback (JWT):', { session, token });
+      if (session?.user && token) {
+        session.user.id = token.id || token.sub;
+        session.user.role = token.role;
+        session.user.email = token.email;
+        session.user.name = token.name;
+        console.log('Updated session (JWT):', session);
       }
       return session
     },
@@ -84,9 +108,14 @@ export const authOptions: any = {
   pages: {
     signIn: '/auth/signin',
     verifyRequest: '/auth/verify-request',
+    signOut: '/',
   },
   session: {
-    strategy: 'database' as const,
+    strategy: 'jwt' as const,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 }
 

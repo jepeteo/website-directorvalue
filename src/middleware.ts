@@ -9,6 +9,8 @@ export async function middleware(req: NextRequest) {
     req, 
     secret: process.env.NEXTAUTH_SECRET 
   })
+  
+  console.log(`Middleware check for ${pathname}:`, { token: token ? 'exists' : 'null', tokenData: token });
 
   // Allow access to public routes
   if (
