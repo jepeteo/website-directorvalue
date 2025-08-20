@@ -45,15 +45,20 @@ export async function middleware(req: NextRequest) {
   }
 
   // Check if user has required role for protected routes
-  if (pathname.startsWith('/admin') && token && 'role' in token && token.role !== 'ADMIN') {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+  if (pathname.startsWith('/admin')) {
+    if (token && 'role' in token && token.role !== 'ADMIN') {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+    // For admin routes, let the layout handle auth if no token
+    if (!token) {
+      return NextResponse.next()
+    }
   }
 
-  // For dashboard routes, ensure user is logged in
-  if (pathname.startsWith('/dashboard') && !token) {
-    const url = new URL('/auth/signin', req.url)
-    url.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(url)
+  // For dashboard routes, let the layout handle auth instead of middleware
+  // This allows auth() function to properly validate the session
+  if (pathname.startsWith('/dashboard')) {
+    return NextResponse.next()
   }
 
   return NextResponse.next()
