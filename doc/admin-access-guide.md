@@ -90,22 +90,38 @@ VALUES ('new-admin@company.com', 'Admin Name', 'ADMIN');
 
 ## 🛠️ Quick Setup for Production
 
-### Option 1: Using Resend (Easiest - Already Integrated)
-Since you already have Resend configured for other emails:
+### Option 1: Using Resend (Recommended - Already Configured!)
 
-1. **Get your Resend API key** from [resend.com](https://resend.com)
+Since you already have Resend integrated:
+
+1. **✅ Already configured** - Resend API key is set up
 2. **Add to Vercel environment variables**:
    ```
-   EMAIL_SERVER_HOST=smtp.resend.com
-   EMAIL_SERVER_PORT=587
-   EMAIL_SERVER_USER=resend
-   EMAIL_SERVER_PASSWORD=re_your_api_key_here
+   RESEND_API_KEY=re_QKnWjQPc_MhAvHWbSvsUiZfy7RcyMx6we
    EMAIL_FROM=noreply@directorvalue.com
    ```
 3. **Deploy** the changes
 4. **Sign in** at https://directorvalue.com/auth/signin
 
-### Option 2: Quick Admin Creation
+### Option 2: Alternative Email Providers (If Needed)
+
+#### Gmail Setup
+```bash
+EMAIL_SERVER_HOST=smtp.gmail.com
+EMAIL_SERVER_PORT=587
+EMAIL_SERVER_USER=your-email@gmail.com
+EMAIL_SERVER_PASSWORD=your-app-password
+EMAIL_FROM=your-email@gmail.com
+```
+
+#### SendGrid Setup
+```bash
+EMAIL_SERVER_HOST=smtp.sendgrid.net
+EMAIL_SERVER_PORT=587
+EMAIL_SERVER_USER=apikey
+EMAIL_SERVER_PASSWORD=your_sendgrid_api_key
+EMAIL_FROM=noreply@directorvalue.com
+```
 1. **Connect to your production database**
 2. **Run the admin script locally** (connected to production DB):
    ```bash
