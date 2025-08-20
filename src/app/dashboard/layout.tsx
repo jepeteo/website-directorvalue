@@ -17,6 +17,11 @@ export default async function DashboardLayout({
 }) {
   const session = await auth();
 
+  // Debug logging
+  console.log("Dashboard Layout - Session:", session);
+  console.log("Dashboard Layout - NODE_ENV:", process.env.NODE_ENV);
+  console.log("Dashboard Layout - User:", session?.user);
+
   // Development bypass for testing
   const isDevelopment = process.env.NODE_ENV === "development";
 

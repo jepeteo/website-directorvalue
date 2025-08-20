@@ -17,6 +17,11 @@ export default async function AdminLayout({
 }) {
   const session = await auth();
 
+  // Debug logging
+  console.log("Admin Layout - Session:", session);
+  console.log("Admin Layout - NODE_ENV:", process.env.NODE_ENV);
+  console.log("Admin Layout - User:", session?.user);
+
   // Development bypass - create a mock admin session
   const isDevelopment = process.env.NODE_ENV === "development";
 
