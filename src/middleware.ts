@@ -10,6 +10,12 @@ export async function middleware(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET 
   })
 
+  // Debug logging
+  console.log(`Middleware - Path: ${pathname}, Token: ${token ? 'EXISTS' : 'NULL'}`)
+  if (token) {
+    console.log(`Middleware - User: ${token.email}, Role: ${token.role}`)
+  }
+
   // Allow access to public routes
   if (
     pathname === '/' ||
