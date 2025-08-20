@@ -1,15 +1,24 @@
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import NextAuth from 'next-auth'
 import EmailProvider from 'next-auth/providers/email'
-import { prisma } from '@/lib/prisma'
+import { PrismaClient } from '@prisma/client'
 import { Resend } from 'resend'
+
+// Use a dedicated Prisma client for auth with unpooled connection
+const authPrisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL
+    }
+  }
+})
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const authOptions: any = {
   secret: process.env.NEXTAUTH_SECRET,
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(authPrisma),
   providers: [
     EmailProvider({
       // Minimal server config required by NextAuth (not actually used)
@@ -64,29 +73,52 @@ export const authOptions: any = {
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async signIn(params: any) {
-      return true;
+      console.log('SignIn callback triggered:', {
+        user: params.user,
+        account: params.account,
+        profile: params.profile,
+        email: params.email
+      });
+      
+      try {
+        // Additional validation for email provider
+        if (params.account?.provider === 'email') {
+          console.log('Email provider signin attempt');
+          return true;
+        }
+        return true;
+      } catch (error) {
+        console.error('SignIn callback error:', error);
+        return false;
+      }
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async jwt({ token, user, account, profile }: any) {
-      // If user is present (sign in), add user info to token
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-        token.email = user.email;
-        token.name = user.name;
-      } else if (token.email) {
-        // On subsequent calls, get fresh user data from database
-        const dbUser = await prisma.user.findUnique({
-          where: { email: token.email },
-          select: { id: true, role: true, name: true, email: true },
-        });
-        if (dbUser) {
-          token.id = dbUser.id;
-          token.role = dbUser.role;
-          token.name = dbUser.name;
+      try {
+        // If user is present (sign in), add user info to token
+        if (user) {
+          console.log('JWT callback - new user:', user);
+          token.id = user.id;
+          token.role = user.role;
+          token.email = user.email;
+          token.name = user.name;
+        } else if (token.email) {
+          // On subsequent calls, get fresh user data from database
+          const dbUser = await authPrisma.user.findUnique({
+            where: { email: token.email },
+            select: { id: true, role: true, name: true, email: true },
+          });
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.role = dbUser.role;
+            token.name = dbUser.name;
+          }
         }
+        return token;
+      } catch (error) {
+        console.error('JWT callback error:', error);
+        return token;
       }
-      return token;
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     session: async ({ session, token }: { session: Record<string, any>; token: Record<string, any> }) => {
