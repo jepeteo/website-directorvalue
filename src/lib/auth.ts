@@ -8,6 +8,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const authOptions: any = {
+  secret: process.env.NEXTAUTH_SECRET,
   adapter: PrismaAdapter(prisma),
   providers: [
     EmailProvider({
