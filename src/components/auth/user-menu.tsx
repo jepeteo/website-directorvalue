@@ -91,7 +91,6 @@ export function UserMenu() {
           onSelect={async (event) => {
             event.preventDefault();
             try {
-              console.log("Signing out...");
               await signOut({
                 callbackUrl: "/",
                 redirect: true,

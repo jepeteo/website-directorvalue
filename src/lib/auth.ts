@@ -53,8 +53,6 @@ export const authOptions: any = {
             `,
             text: `Sign in to Director Value\n\nClick the link below to sign in to your account:\n${url}\n\nIf you didn't request this email, you can safely ignore it.\n\n© 2025 Director Value`,
           })
-          
-          console.log('Verification email sent successfully:', result)
         } catch (error) {
           console.error('Failed to send verification email:', error)
           throw new Error('Failed to send verification email')
@@ -65,12 +63,10 @@ export const authOptions: any = {
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async signIn(params: any) {
-      console.log('signIn callback:', params);
       return true;
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async jwt({ token, user, account, profile }: any) {
-      console.log('jwt callback:', { token, user, account, profile });
       // If user is present (sign in), add user info to token
       if (user) {
         token.id = user.id;
@@ -89,18 +85,15 @@ export const authOptions: any = {
           token.name = dbUser.name;
         }
       }
-      console.log('Updated JWT token:', token);
       return token;
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     session: async ({ session, token }: { session: Record<string, any>; token: Record<string, any> }) => {
-      console.log('session callback (JWT):', { session, token });
       if (session?.user && token) {
         session.user.id = token.id || token.sub;
         session.user.role = token.role;
         session.user.email = token.email;
         session.user.name = token.name;
-        console.log('Updated session (JWT):', session);
       }
       return session
     },

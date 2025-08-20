@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signOut } from "next-auth/react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,6 +22,8 @@ import {
   LogOut,
   Shield,
   HelpCircle,
+  Home,
+  LayoutDashboard,
 } from "lucide-react";
 
 interface AdminHeaderProps {
@@ -49,11 +52,24 @@ export function AdminHeader({ user }: AdminHeaderProps) {
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="flex items-center justify-between h-16 px-6">
-        {/* Left side - Title */}
-        <div className="flex items-center">
+        {/* Left side - Title & Navigation */}
+        <div className="flex items-center space-x-4">
           <h1 className="text-xl font-semibold text-gray-900">
             Admin Dashboard
           </h1>
+          <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-500">
+            <span>|</span>
+            <Link href="/" className="hover:text-blue-600 transition-colors">
+              Main Site
+            </Link>
+            <span>•</span>
+            <Link
+              href="/dashboard"
+              className="hover:text-blue-600 transition-colors"
+            >
+              User Dashboard
+            </Link>
+          </div>
         </div>
 
         {/* Right side - Actions */}
@@ -91,23 +107,25 @@ export function AdminHeader({ user }: AdminHeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex items-center space-x-2 p-2"
+                className="flex items-center space-x-3 p-2 h-10"
               >
-                <Avatar className="h-8 w-8">
+                <Avatar className="h-8 w-8 flex-shrink-0">
                   <AvatarImage src={user.image || undefined} />
                   <AvatarFallback className="bg-blue-100 text-blue-700">
                     {userInitials}
                   </AvatarFallback>
                 </Avatar>
-                <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium text-gray-900">
-                    {user.name || user.email}
-                  </p>
-                  <div className="flex items-center space-x-1">
-                    <Shield className="h-3 w-3 text-green-500" />
-                    <p className="text-xs text-gray-500 uppercase">
-                      {user.role}
+                <div className="hidden xl:flex items-center space-x-2">
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-gray-900 leading-none mb-0">
+                      {user.name || user.email}
                     </p>
+                  </div>
+                  <div className="flex items-center bg-green-50 px-2 py-1 rounded-full">
+                    <Shield className="h-3 w-3 text-green-600 mr-1" />
+                    <span className="text-xs font-medium text-green-700 uppercase">
+                      {user.role}
+                    </span>
                   </div>
                 </div>
               </Button>
@@ -121,6 +139,19 @@ export function AdminHeader({ user }: AdminHeaderProps) {
                   <p className="text-xs text-gray-500">{user.email}</p>
                 </div>
               </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/" className="flex items-center">
+                  <Home className="mr-2 h-4 w-4" />
+                  Main Site
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard" className="flex items-center">
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  User Dashboard
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
@@ -141,7 +172,6 @@ export function AdminHeader({ user }: AdminHeaderProps) {
                 onSelect={async (event) => {
                   event.preventDefault();
                   try {
-                    console.log("Admin signing out...");
                     await signOut({
                       callbackUrl: "/",
                       redirect: true,
