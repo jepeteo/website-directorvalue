@@ -1,5 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 import { getBusinessBySlug } from "@/lib/business-service";
 import { BusinessDetail } from "@/components/business/business-detail";
 
@@ -41,9 +43,15 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
-      <div className="container mx-auto px-4 py-8">
-        <BusinessDetail business={business} />
-      </div>
+      <Header />
+
+      <main>
+        <div className="container mx-auto px-4 py-8">
+          <BusinessDetail business={business} />
+        </div>
+      </main>
+
+      <Footer />
     </div>
   );
 }

@@ -190,7 +190,7 @@ export function Footer() {
               <span>© 2025 Director Value. All rights reserved.</span>
               <span className="hidden sm:inline">·</span>
               <span>
-                Built by{" "}
+                An{" "}
                 <Link
                   href="https://mtxstudio.com"
                   target="_blank"
@@ -198,7 +198,8 @@ export function Footer() {
                   className="text-gray-300 hover:text-white transition-colors duration-200 font-medium"
                 >
                   MTX Studio
-                </Link>
+                </Link>{" "}
+                company.
               </span>
             </div>
 

@@ -1,6 +1,38 @@
 # Director Value
 
+**🌍 Live at [directorvalue.com](https://directorvalue.com)**
+
 Everything you need worldwide - A comprehensive business directory platform built with Next.js, allowing businesses to list their services and customers to find local businesses worldwide.
+
+## 🚀 Current Status
+
+**Version 1.0.0** - Live Production Release
+
+The platform is now live and operational with core features implemented:
+
+### ✅ Completed Features
+
+- **🏢 Business Listings**: Complete business profiles with contact info, services, reviews, and working hours
+- **🔍 Search & Filter**: Advanced search by location, category, and various filters with pagination
+- **⭐ Review System**: Customer reviews with abuse reporting and admin moderation
+- **💰 Multi-tier Plans**: Free trial (30 days), Basic (€5.99/mo), Pro, and VIP subscription plans
+- **👨‍💼 Admin Dashboard**: Complete management interface for businesses, users, and content moderation
+- **🌐 Internationalization**: Support for EN, FR, and DE languages (next-intl)
+- **💳 Payment Integration**: Stripe subscriptions with 30-day trials and webhook handling
+- **📧 Email System**: Resend integration for transactional emails and VIP lead relay
+- **🔐 Authentication**: NextAuth.js with email magic links and role-based access
+- **🎨 UI/UX**: Modern interface with Tailwind CSS and Radix UI components
+- **📱 Responsive Design**: Mobile-first approach with optimized layouts
+- **🔒 Security**: Rate limiting, input validation with Zod, and Cloudflare Turnstile ready
+- **📊 Analytics**: Admin dashboard with business stats, review analytics, and user management
+
+### 🔄 In Progress / Planned
+
+- **Stripe Webhooks**: Full billing lifecycle automation
+- **VIP Contact Relay**: Email forwarding system for VIP listings
+- **Enhanced Search**: Location-based search improvements
+- **SEO Optimization**: JSON-LD structured data and sitemap generation
+- **Performance**: Image optimization and caching strategies
 
 ## Features
 
@@ -70,7 +102,7 @@ npx prisma db seed
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the application.
+Open [https://directorvalue.com](https://directorvalue.com) to see the live application, or [http://localhost:3000](http://localhost:3000) for local development.
 
 ## Project Structure
 
@@ -112,12 +144,26 @@ See `.env.example` for all required environment variables. Key variables include
 
 ## Deployment
 
-This project is configured for deployment on Vercel but can be deployed anywhere that supports Node.js applications.
+🎉 **Currently Live**: The project is deployed and running at [directorvalue.com](https://directorvalue.com)
+
+**Platform**: Vercel with custom domain  
+**Database**: Vercel Postgres  
+**CDN**: Vercel Edge Network  
+**Monitoring**: Vercel Analytics  
 
 For Vercel deployment:
 1. Connect your repository to Vercel
 2. Configure environment variables in Vercel dashboard
 3. Deploy automatically on push to main branch
+4. Add custom domain in Vercel dashboard settings
+
+### Environment Setup for Production
+Ensure these environment variables are configured in Vercel:
+- Database connections (Vercel Postgres or external)
+- Stripe keys and webhook endpoints
+- Resend API configuration
+- NextAuth secrets and URLs
+- Optional: Redis for rate limiting, Turnstile for form protection
 
 ## Contributing
 

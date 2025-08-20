@@ -1,60 +1,72 @@
 # Director Value — PRD (Product Requirements Document)
 
+**🌍 LIVE PRODUCTION**: [directorvalue.com](https://directorvalue.com)  
+**📅 Launch Date**: January 2025  
+**📦 Version**: 1.0.0  
+**🎯 Status**: MVP Deployed & Operational
+
 ## 1) Overview
 - **Product:** Director Value Business Directory ("Everything you need worldwide")
+- **Current Status**: 🚀 **LIVE** at [directorvalue.com](https://directorvalue.com)
 - **Goal (6–12 mo):** 1,000+ registered businesses/self-employed; generate profit + leads for directory services.
 - **Audience:** Self-employed, SMB, mid-market, enterprise (global).
 - **Primary KPIs:** #active listings, conversion to paid (trial→paid), search CTR, leads sent, Stripe MRR/ARR.
 - **Branding:** Director Value ("Everything you need worldwide") - An MTX company.
 
-## 2) Scope (MVP)
-- **Listings:** Global, all industries; categories, tags, regions.
-- **Plans:**  
+## 2) Scope (MVP) ✅ DEPLOYED
+
+**🎉 Current Live Features:**
+- **Listings:** ✅ Global, all industries; categories, tags, regions.
+- **Plans:** ✅ 
   - **Free Trial (30 days):** auto-expires → listing deactivated.  
   - **Basic (€5.99/mo):** name, address, phone, email.  
   - **Pro:** Basic + services, logo, Google Map, working hours.  
   - **VIP:** Pro + top placement in category, hide email, contact-form relay.
-- **Self-serve capability:** **VIP only** can self-register/manage. Others contact us; admin creates/edits.
-- **Payments:** Stripe subscriptions + webhooks (trial, renewals, dunning, cancel).
-- **Search:** by name, category, location, filters (price range, tags, open now, rating).
-- **Reviews:** Open posting; abuse-report mechanism; soft-delete + audit log.
-- **Accounts:** Visitors (no login), Business owners (VIP self-serve), Admin.  
+- **Self-serve capability:** ✅ **VIP** can self-register/manage. Others contact us; admin creates/edits.
+- **Payments:** 🔄 Stripe subscriptions + webhooks (trial, renewals, dunning, cancel) - *In Progress*
+- **Search:** ✅ by name, category, location, filters (price range, tags, open now, rating).
+- **Reviews:** ✅ Open posting; abuse-report mechanism; soft-delete + audit log.
+- **Accounts:** ✅ Visitors (no login), Business owners (VIP self-serve), Admin.  
   *(Future roles: Moderator, Finance, Support.)*
-- **i18n:** EN, FR, DE.
-- **Integrations:** Google Maps; CRM (lead capture for both listed businesses and internal sales); Social share.  
+- **i18n:** 🔄 EN, FR, DE - *Structure ready, implementation in progress*
+- **Integrations:** 🔄 Google Maps; CRM (lead capture for both listed businesses and internal sales); Social share - *Partially implemented*  
   *(Booking system: TBD/feature-flag for later.)*
-- **Compliance:** GDPR, cookie consent, privacy/terms, email relay privacy for VIP.
+- **Compliance:** 📋 GDPR, cookie consent, privacy/terms, email relay privacy for VIP - *Planned*
 
 ## 3) Non-Goals (MVP)
 - No marketplace transactions between users and businesses.
 - No per-listing booking engine (placeholder only).
 - No complex multi-tenant role matrix (single Admin to start).
 
-## 4) Architecture / Tech
-- **Stack:** Next.js (App Router, RSC, Route Handlers), React, TypeScript (strict, **no `any`**), Tailwind CSS.
-- **Data:** PostgreSQL (Vercel Postgres / Neon) via Prisma.
-- **Auth:** NextAuth (email magic link + optional OAuth later). Role field in user table.
-- **Deployment:** Start on Vercel (Edge cache, ISR/SSG/SSR mix). Later: SiteGround Cloud (Node runtime).
-- **Email:** Resend (transactional + relay).  
-- **Caching:** Next.js cache, Incremental Static Regeneration for listing/category pages; SWR for client fetches.
-- **Security:**  
-  - Zod validation on all inputs; server-side enforcement.  
-  - Rate limiting (middleware + Upstash Redis).  
-  - Cloudflare Turnstile on public forms (reviews, abuse reports, contact).  
-  - Prisma row-level authorization checks.  
-  - Secrets via env; no PII in logs.
-- **Performance:** Next/Image, edge-cached listing pages, avoid large client bundles (RSC first), code-split client components.
+## 4) Architecture / Tech ✅ IMPLEMENTED
 
-## 5) Information Architecture
-- **Public:**  
+**🚀 Production Stack:**
+- **Stack:** ✅ Next.js (App Router, RSC, Route Handlers), React, TypeScript (strict, **no `any`**), Tailwind CSS.
+- **Data:** ✅ PostgreSQL (Vercel Postgres) via Prisma.
+- **Auth:** ✅ NextAuth (email magic link + optional OAuth later). Role field in user table.
+- **Deployment:** ✅ **LIVE on Vercel** with custom domain [directorvalue.com](https://directorvalue.com). Edge cache, ISR/SSG/SSR mix.
+- **Email:** ✅ Resend (transactional + relay).  
+- **Caching:** ✅ Next.js cache, Incremental Static Regeneration for listing/category pages; SWR for client fetches.
+- **Security:**  
+  - ✅ Zod validation on all inputs; server-side enforcement.  
+  - 🔄 Rate limiting (middleware + Upstash Redis) - *Ready to implement*.  
+  - 🔄 Cloudflare Turnstile on public forms (reviews, abuse reports, contact) - *Ready to implement*.  
+  - ✅ Prisma row-level authorization checks.  
+  - ✅ Secrets via env; no PII in logs.
+- **Performance:** ✅ Next/Image, edge-cached listing pages, avoid large client bundles (RSC first), code-split client components.
+
+## 5) Information Architecture ✅ IMPLEMENTED
+
+**🌍 Live Site Structure:**
+- **Public:** ✅ 
   - `/` (hero, search, top categories, featured VIP)  
   - `/search?query=&category=&location=&filters=…`  
   - `/c/[category]` (paginated list, faceted filters)  
   - `/l/[slug]` (listing page: details, map, hours, services, reviews, report abuse, contact relay if VIP)  
   - Static pages: about, pricing, terms, privacy, contact.
-- **Business Owner (VIP):**  
+- **Business Owner (VIP):** ✅  
   - `/dashboard` (edit listing, media, services, plan/billing, stats)  
-- **Admin:**  
+- **Admin:** ✅  
   - `/admin` (users, listings, categories/taxonomy, reviews, abuse queue, payments status, CRM leads)
 
 ## 6) Data Model (concise)
