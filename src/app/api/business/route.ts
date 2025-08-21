@@ -57,7 +57,7 @@ const businessSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     // Check authentication
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET || "" })
     
     if (!token) {
       return NextResponse.json(

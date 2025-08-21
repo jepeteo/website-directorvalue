@@ -8,7 +8,7 @@ import { Resend } from 'resend'
 const authPrisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL
+      url: process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL || ""
     }
   }
 })

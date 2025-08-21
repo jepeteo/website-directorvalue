@@ -14,20 +14,34 @@ const reviewSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     // Check authentication (optional for reviews - can be anonymous)
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET || "" })
 
     // Parse and validate request body
     const body = await req.json()
     const validatedData = reviewSchema.parse(body)
 
     // Create the review using business service
-    const review = await createReview({
+    const reviewData: {
+      businessId: string;
+      userId?: string;
+      rating: number;
+      content: string;
+      title?: string;
+    } = {
       businessId: validatedData.businessId,
-      userId: token?.sub,
       rating: validatedData.rating,
       content: validatedData.comment,
-      title: validatedData.title,
-    });
+    };
+
+    if (token?.sub) {
+      reviewData.userId = token.sub;
+    }
+
+    if (validatedData.title) {
+      reviewData.title = validatedData.title;
+    }
+
+    const review = await createReview(reviewData);
 
     return NextResponse.json({
       success: true,

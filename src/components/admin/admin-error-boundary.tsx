@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 
 interface ErrorBoundaryState {
   hasError: boolean;
-  error?: Error;
+  error: Error | null;
 }
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
-  fallback?: React.ComponentType<{ error?: Error; retry: () => void }>;
+  fallback?: React.ComponentType<{ error: Error | null; retry: () => void }>;
 }
 
 class AdminErrorBoundary extends React.Component<
@@ -20,19 +20,19 @@ class AdminErrorBoundary extends React.Component<
 > {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("Admin dashboard error:", error, errorInfo);
   }
 
   retry = () => {
-    this.setState({ hasError: false, error: undefined });
+    this.setState({ hasError: false, error: null });
   };
 
   render() {

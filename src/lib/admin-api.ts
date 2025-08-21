@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AdminError, AdminApiResponse, isAdminSession, AdminSession } from "@/types/admin";
 import type { Session } from "next-auth";
+import type { Prisma } from "@prisma/client";
 
 /**
  * Centralized admin authentication middleware
@@ -64,14 +65,20 @@ export async function logAdminAction(
   details?: Record<string, unknown>
 ): Promise<void> {
   try {
+    const createData: Prisma.AdminActionLogCreateInput = {
+      admin: { connect: { id: adminId } },
+      action,
+      targetType,
+      targetId,
+    };
+
+    // Only add details if provided
+    if (details !== undefined) {
+      createData.details = details as Prisma.InputJsonValue;
+    }
+
     await prisma.adminActionLog.create({
-      data: {
-        adminId,
-        action,
-        targetType,
-        targetId,
-        ...(details && { details }),
-      },
+      data: createData,
     });
   } catch (error) {
     console.error("Failed to log admin action:", error);
