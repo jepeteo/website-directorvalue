@@ -14,7 +14,9 @@ import { Star, ChevronLeft, ChevronRight } from "lucide-react";
 interface Review {
   id: string;
   rating: number;
-  comment: string;
+  content?: string;
+  comment?: string; // For backward compatibility
+  title?: string;
   createdAt: string | Date;
   user: {
     id: string;
@@ -143,8 +145,13 @@ export function ReviewsList({
                     {formatDate(review.createdAt)}
                   </span>
                 </div>
+                {review.title && (
+                  <h4 className="font-semibold text-gray-900">
+                    {review.title}
+                  </h4>
+                )}
                 <p className="text-gray-600 leading-relaxed">
-                  {review.comment}
+                  {review.content || review.comment}
                 </p>
                 <div className="border-t pt-3" />
               </div>

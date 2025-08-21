@@ -9,25 +9,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ReviewActions } from "./review-actions";
 import {
-  MoreHorizontal,
   Star,
   CheckCircle,
   AlertTriangle,
   XCircle,
   Clock,
-  Eye,
-  Flag,
-  Trash2,
   MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
@@ -75,7 +64,7 @@ async function getReviews(searchParams: SearchParams) {
 
     if (searchParams.search) {
       where.OR = [
-        { comment: { contains: searchParams.search, mode: "insensitive" } },
+        { content: { contains: searchParams.search, mode: "insensitive" } },
         {
           user: {
             name: { contains: searchParams.search, mode: "insensitive" },
@@ -99,7 +88,11 @@ async function getReviews(searchParams: SearchParams) {
     }
 
     if (searchParams.status) {
-      where.status = searchParams.status;
+      if (searchParams.status === "hidden") {
+        where.isHidden = true;
+      } else if (searchParams.status === "visible") {
+        where.isHidden = false;
+      }
     }
 
     if (searchParams.business) {
@@ -187,32 +180,18 @@ export async function ReviewTable({
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "APPROVED":
+      case "HIDDEN":
+        return (
+          <Badge className="bg-red-100 text-red-800">
+            <XCircle className="h-3 w-3 mr-1" />
+            Hidden
+          </Badge>
+        );
+      case "VISIBLE":
         return (
           <Badge className="bg-green-100 text-green-800">
             <CheckCircle className="h-3 w-3 mr-1" />
-            Approved
-          </Badge>
-        );
-      case "PENDING":
-        return (
-          <Badge className="bg-yellow-100 text-yellow-800">
-            <Clock className="h-3 w-3 mr-1" />
-            Pending
-          </Badge>
-        );
-      case "FLAGGED":
-        return (
-          <Badge variant="destructive">
-            <AlertTriangle className="h-3 w-3 mr-1" />
-            Flagged
-          </Badge>
-        );
-      case "REJECTED":
-        return (
-          <Badge variant="outline" className="text-red-600 border-red-200">
-            <XCircle className="h-3 w-3 mr-1" />
-            Rejected
+            Visible
           </Badge>
         );
       default:
@@ -350,67 +329,11 @@ export async function ReviewTable({
 
                   {/* Actions */}
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        {!review.isHidden && (
-                          <>
-                            <DropdownMenuItem className="text-green-600">
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              Approve
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-orange-600">
-                              <Flag className="h-4 w-4 mr-2" />
-                              Flag as Inappropriate
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
-                              <XCircle className="h-4 w-4 mr-2" />
-                              Reject
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                        {!review.isHidden && (
-                          <>
-                            <DropdownMenuItem className="text-orange-600">
-                              <Flag className="h-4 w-4 mr-2" />
-                              Flag Review
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
-                              <XCircle className="h-4 w-4 mr-2" />
-                              Reject Review
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                        {review.isHidden && (
-                          <>
-                            <DropdownMenuItem className="text-green-600">
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              Approve Review
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
-                              <XCircle className="h-4 w-4 mr-2" />
-                              Reject Review
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Review
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <ReviewActions
+                      reviewId={review.id}
+                      isHidden={review.isHidden}
+                      businessSlug={review.business.slug}
+                    />
                   </TableCell>
                 </TableRow>
               ))

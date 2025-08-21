@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getToken } from "next-auth/jwt"
 import { z } from "zod"
 import { createReview } from "@/lib/business-service"
+import { prisma } from "@/lib/prisma"
 
 const reviewSchema = z.object({
   businessId: z.string().min(1, "Business ID is required"),
@@ -50,11 +51,67 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Reviews are now loaded with business data in business-service.ts
-// This GET endpoint is kept for potential future use
-export async function GET() {
-  return NextResponse.json(
-    { message: "Reviews are loaded with business data" },
-    { status: 200 }
-  );
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const businessId = searchParams.get("businessId")
+    const page = parseInt(searchParams.get("page") || "1")
+    const limit = parseInt(searchParams.get("limit") || "10")
+
+    if (!businessId) {
+      return NextResponse.json(
+        { error: "Business ID is required" },
+        { status: 400 }
+      )
+    }
+
+    const skip = (page - 1) * limit
+
+    // Get reviews for the business
+    const [reviews, totalReviews] = await Promise.all([
+      prisma.review.findMany({
+        where: {
+          businessId,
+          isHidden: false,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.review.count({
+        where: {
+          businessId,
+          isHidden: false,
+        },
+      }),
+    ])
+
+    const totalPages = Math.ceil(totalReviews / limit)
+
+    return NextResponse.json({
+      reviews,
+      pagination: {
+        page,
+        limit,
+        totalReviews,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    })
+  } catch (error) {
+    console.error("Error fetching reviews:", error)
+    return NextResponse.json(
+      { error: "Failed to fetch reviews" },
+      { status: 500 }
+    )
+  }
 }
