@@ -19,7 +19,7 @@ interface BillingData {
     interval: string;
     status: string;
     trialEndsAt: string | null;
-    nextBillDate: string;
+    nextBillDate: string | null;
     features: string[];
   };
   paymentMethod: {
@@ -28,7 +28,7 @@ interface BillingData {
     brand: string;
     expiryMonth: number;
     expiryYear: number;
-  };
+  } | null;
   invoices: Array<{
     id: string;
     date: string;
@@ -43,6 +43,12 @@ interface BillingData {
     monthlyViews: number;
     monthlyClicks: number;
   };
+  businesses?: Array<{
+    id: string;
+    name: string;
+    planType: string;
+    status: string;
+  }>;
 }
 
 interface Plan {
@@ -75,43 +81,43 @@ export default function BillingDashboard({
       currency: "EUR",
       interval: "month",
       features: [
-        "1 Business Listing",
-        "Basic Analytics",
-        "Email Support",
-        "Standard Review Management",
+        "Business name, address, phone, email",
+        "Basic business information",
+        "Search listing inclusion",
+        "Customer support",
       ],
       current: data.currentPlan.name === "Basic",
     },
     {
       name: "Pro",
-      price: 19.99,
+      price: 12.99,
       currency: "EUR",
       interval: "month",
       features: [
-        "5 Business Listings",
-        "Advanced Analytics",
-        "Priority Support",
-        "Advanced Review Management",
-        "Customer Insights",
-        "SEO Tools",
+        "Everything in Basic",
+        "Business logo and images",
+        "Service listings",
+        "Business hours display",
+        "Google Maps integration",
+        "Enhanced business profile",
       ],
       current: data.currentPlan.name === "Pro",
       popular: true,
     },
     {
       name: "VIP",
-      price: 49.99,
+      price: 19.99,
       currency: "EUR",
       interval: "month",
       features: [
-        "Unlimited Business Listings",
-        "Premium Analytics",
-        "24/7 Phone Support",
-        "AI-Powered Review Responses",
-        "Advanced Customer Insights",
-        "Premium SEO Tools",
-        "Custom Branding",
-        "API Access",
+        "Everything in Pro",
+        "Top placement in category",
+        "Hide email address",
+        "Contact form relay",
+        "Priority customer support",
+        "Advanced analytics",
+        "Featured listing badge",
+        "Self-service management",
       ],
       current: data.currentPlan.name === "VIP",
     },
@@ -191,8 +197,9 @@ export default function BillingDashboard({
       setData((prev) => ({
         ...prev,
         paymentMethod: {
-          ...prev.paymentMethod,
+          type: prev.paymentMethod?.type || "card",
           last4: "5678", // Mock new card
+          brand: prev.paymentMethod?.brand || "visa",
           expiryMonth: 3,
           expiryYear: 2029,
         },
@@ -278,7 +285,9 @@ export default function BillingDashboard({
                 Next billing date
               </span>
               <span className="text-sm font-medium">
-                {new Date(data.currentPlan.nextBillDate).toLocaleDateString()}
+                {data.currentPlan.nextBillDate
+                  ? new Date(data.currentPlan.nextBillDate).toLocaleDateString()
+                  : "N/A"}
               </span>
             </div>
 
@@ -443,13 +452,25 @@ export default function BillingDashboard({
             <CreditCard className="h-6 w-6" />
           </div>
           <div>
-            <p className="font-medium">
-              •••• •••• •••• {data.paymentMethod.last4}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {data.paymentMethod.brand.toUpperCase()} • Expires{" "}
-              {data.paymentMethod.expiryMonth}/{data.paymentMethod.expiryYear}
-            </p>
+            {data.paymentMethod ? (
+              <>
+                <p className="font-medium">
+                  •••• •••• •••• {data.paymentMethod.last4}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {data.paymentMethod.brand.toUpperCase()} • Expires{" "}
+                  {data.paymentMethod.expiryMonth}/
+                  {data.paymentMethod.expiryYear}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="font-medium">No payment method</p>
+                <p className="text-sm text-muted-foreground">
+                  Add a payment method to continue your subscription
+                </p>
+              </>
+            )}
           </div>
         </div>
 
