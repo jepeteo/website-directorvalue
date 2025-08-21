@@ -87,7 +87,7 @@ export function BusinessRegistrationForm() {
   // Update email when session changes
   useEffect(() => {
     if (session?.user?.email && !formData.email) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         email: session.user.email || "",
       }));
@@ -95,7 +95,7 @@ export function BusinessRegistrationForm() {
   }, [session, formData.email]);
 
   const updateFormData = (field: keyof BusinessFormData, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -126,7 +126,7 @@ export function BusinessRegistrationForm() {
 
     try {
       const slug = generateSlug(formData.name);
-      
+
       const submitData = {
         ...formData,
         slug,
@@ -158,7 +158,10 @@ export function BusinessRegistrationForm() {
       console.error("Registration error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to register business. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to register business. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -183,7 +186,11 @@ export function BusinessRegistrationForm() {
       case 1:
         return !!(formData.name && formData.description && formData.categoryId);
       case 2:
-        return !!(formData.addressLine1 && formData.city && formData.postalCode);
+        return !!(
+          formData.addressLine1 &&
+          formData.city &&
+          formData.postalCode
+        );
       case 3:
         return !!(formData.email && (formData.phone || formData.website));
       default:
@@ -225,9 +232,7 @@ export function BusinessRegistrationForm() {
               <Building className="h-5 w-5" />
               Business Information
             </CardTitle>
-            <CardDescription>
-              Tell us about your business
-            </CardDescription>
+            <CardDescription>Tell us about your business</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -294,9 +299,7 @@ export function BusinessRegistrationForm() {
               <MapPin className="h-5 w-5" />
               Business Location
             </CardTitle>
-            <CardDescription>
-              Where is your business located?
-            </CardDescription>
+            <CardDescription>Where is your business located?</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -355,7 +358,9 @@ export function BusinessRegistrationForm() {
                   <SelectContent>
                     <SelectItem value="France">France</SelectItem>
                     <SelectItem value="Germany">Germany</SelectItem>
-                    <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                    <SelectItem value="United Kingdom">
+                      United Kingdom
+                    </SelectItem>
                     <SelectItem value="Spain">Spain</SelectItem>
                     <SelectItem value="Italy">Italy</SelectItem>
                   </SelectContent>
@@ -387,9 +392,7 @@ export function BusinessRegistrationForm() {
               <Phone className="h-5 w-5" />
               Contact Information
             </CardTitle>
-            <CardDescription>
-              How can customers reach you?
-            </CardDescription>
+            <CardDescription>How can customers reach you?</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -428,8 +431,9 @@ export function BusinessRegistrationForm() {
 
             <div className="bg-muted p-4 rounded-lg">
               <p className="text-sm text-muted-foreground">
-                <strong>Note:</strong> Your business will be submitted for review and will appear on the directory once approved. 
-                This typically takes 1-2 business days.
+                <strong>Note:</strong> Your business will be submitted for
+                review and will appear on the directory once approved. This
+                typically takes 1-2 business days.
               </p>
             </div>
 
