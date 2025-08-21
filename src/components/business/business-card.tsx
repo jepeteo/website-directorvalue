@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RatingDisplay } from "@/components/ui/rating-display";
 
 interface BusinessCardProps {
   business: {
@@ -164,12 +165,12 @@ export function BusinessCard({ business, className }: BusinessCardProps) {
 
             {/* Rating */}
             {rating && (
-              <div className="flex items-center gap-2 mb-2">
-                <div className="flex items-center">{renderStars(rating)}</div>
-                <span className="text-sm text-gray-600">
-                  {rating.toFixed(1)} ({reviewCount} review
-                  {reviewCount !== 1 ? "s" : ""})
-                </span>
+              <div className="mb-2">
+                <RatingDisplay
+                  rating={rating}
+                  totalReviews={reviewCount}
+                  size="sm"
+                />
               </div>
             )}
 

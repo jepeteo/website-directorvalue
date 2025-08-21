@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ReviewForm } from "@/components/reviews/review-form";
+import { ReviewsList } from "@/components/reviews/reviews-list";
+import { RatingDisplay } from "@/components/ui/rating-display";
+import { LeadCaptureForm } from "@/components/leads/lead-capture-form";
 import {
   MapPin,
   Phone,
@@ -24,6 +28,33 @@ interface BusinessDetailProps {
 
 export function BusinessDetail({ business }: BusinessDetailProps) {
   const [isLiked, setIsLiked] = useState(false);
+  const [reviewRefreshTrigger, setReviewRefreshTrigger] = useState(0);
+  const [businessStats, setBusinessStats] = useState<{
+    averageRating: number;
+    totalReviews: number;
+    distribution: Array<{ rating: number; count: number }>;
+  } | null>(null);
+
+  // Fetch business statistics
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch(`/api/business/${business.id}/stats`);
+        if (response.ok) {
+          const stats = await response.json();
+          setBusinessStats(stats);
+        }
+      } catch (error) {
+        console.error("Error fetching business stats:", error);
+      }
+    };
+
+    fetchStats();
+  }, [business.id, reviewRefreshTrigger]);
+
+  const handleReviewSubmitted = () => {
+    setReviewRefreshTrigger((prev) => prev + 1);
+  };
 
   const formatAddress = () => {
     const parts = [
@@ -140,27 +171,39 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
               </div>
 
               {/* Rating */}
-              {business.rating && (
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-5 w-5 ${
-                          i < Math.floor(business.rating || 0)
-                            ? "text-yellow-400 fill-current"
-                            : "text-gray-300"
-                        }`}
-                      />
+              {businessStats && businessStats.totalReviews > 0 && (
+                <div className="space-y-3">
+                  <RatingDisplay
+                    rating={businessStats.averageRating}
+                    totalReviews={businessStats.totalReviews}
+                    size="lg"
+                  />
+
+                  {/* Rating Distribution */}
+                  <div className="space-y-1">
+                    {businessStats.distribution.map((item) => (
+                      <div
+                        key={item.rating}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <span className="w-8 text-right">{item.rating}★</span>
+                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-yellow-400 h-2 rounded-full transition-all"
+                            style={{
+                              width: `${
+                                businessStats.totalReviews > 0
+                                  ? (item.count / businessStats.totalReviews) *
+                                    100
+                                  : 0
+                              }%`,
+                            }}
+                          />
+                        </div>
+                        <span className="w-8 text-gray-600">{item.count}</span>
+                      </div>
                     ))}
                   </div>
-                  <span className="font-semibold">
-                    {business.rating.toFixed(1)}
-                  </span>
-                  <span className="text-muted-foreground">
-                    ({business.reviewCount}{" "}
-                    {business.reviewCount === 1 ? "review" : "reviews"})
-                  </span>
                 </div>
               )}
 
@@ -225,67 +268,45 @@ export function BusinessDetail({ business }: BusinessDetailProps) {
 
           {/* Reviews */}
           <Card className="glass border-0 shadow-modern">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Reviews</CardTitle>
+              <ReviewForm
+                businessId={business.id}
+                businessName={business.name}
+                onReviewSubmitted={handleReviewSubmitted}
+              />
             </CardHeader>
             <CardContent>
-              {business.reviews && business.reviews.length > 0 ? (
-                <div className="space-y-6">
-                  {business.reviews.map((review) => (
-                    <div
-                      key={review.id}
-                      className="border-b border-border pb-6 last:border-0"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <div className="flex">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`h-4 w-4 ${
-                                    i < review.rating
-                                      ? "text-yellow-400 fill-current"
-                                      : "text-gray-300"
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                            <span className="font-medium">
-                              {review.user?.name || "Anonymous User"}
-                            </span>
-                          </div>
-                          {review.title && (
-                            <h4 className="font-semibold mb-2">
-                              {review.title}
-                            </h4>
-                          )}
-                        </div>
-                        {review.createdAt && (
-                          <span className="text-sm text-muted-foreground">
-                            {new Date(review.createdAt).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-                      {review.content && (
-                        <p className="text-muted-foreground">
-                          {review.content}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-8">
-                  No reviews yet. Be the first to review this business!
-                </p>
-              )}
+              <ReviewsList
+                businessId={business.id}
+                refreshTrigger={reviewRefreshTrigger}
+              />
             </CardContent>
           </Card>
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Lead Capture Form - Only for VIP businesses */}
+          {business.planType === "VIP" && (
+            <Card className="glass border-0 shadow-modern border-yellow-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-yellow-500" />
+                  Get a Quote
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <LeadCaptureForm
+                  businessId={business.id}
+                  businessName={business.name}
+                  businessPlan={business.planType}
+                  variant="inline"
+                />
+              </CardContent>
+            </Card>
+          )}
+
           {/* Contact Info */}
           <Card className="glass border-0 shadow-modern">
             <CardHeader>

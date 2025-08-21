@@ -166,6 +166,9 @@ export async function searchBusinesses({
       include: {
         category: true,
         reviews: {
+          where: {
+            isHidden: false, // Only include visible reviews in rating calculation
+          },
           select: {
             rating: true,
           },
@@ -365,6 +368,9 @@ export async function getFeaturedBusinesses(limit = 6) {
     include: {
       category: true,
       reviews: {
+        where: {
+          isHidden: false, // Only include visible reviews
+        },
         select: {
           rating: true,
         },
