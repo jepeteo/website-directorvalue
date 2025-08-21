@@ -51,6 +51,9 @@ interface BusinessWithStats {
   _count: {
     reviews: number;
   };
+  reviews: {
+    rating: number;
+  }[];
 }
 
 interface SearchParams {
@@ -114,6 +117,11 @@ async function getBusinesses(searchParams: SearchParams) {
           _count: {
             select: {
               reviews: true,
+            },
+          },
+          reviews: {
+            select: {
+              rating: true,
             },
           },
         },
@@ -289,7 +297,16 @@ export async function BusinessTable({
                   <TableCell>
                     <div className="flex items-center space-x-1">
                       <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="text-sm font-medium">0.0</span>
+                      <span className="text-sm font-medium">
+                        {business.reviews.length > 0
+                          ? (
+                              business.reviews.reduce(
+                                (sum, review) => sum + review.rating,
+                                0
+                              ) / business.reviews.length
+                            ).toFixed(1)
+                          : "0.0"}
+                      </span>
                       <span className="text-sm text-gray-500">
                         ({business._count.reviews})
                       </span>

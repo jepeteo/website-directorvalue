@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
 import { sendBusinessStatusEmail, sendWelcomeEmail } from '@/lib/email-service';
 import { prisma } from '@/lib/prisma';
-import { z } from 'zod';
+import { withAdminAuth, adminApiResponse, validateAdminRequest, logAdminAction } from '@/lib/admin-api';
 
 const sendEmailSchema = z.object({
   type: z.enum(['business_approved', 'business_rejected', 'business_suspended', 'welcome']),
@@ -11,29 +11,26 @@ const sendEmailSchema = z.object({
   reason: z.string().optional(),
 });
 
+type SendEmailRequest = z.infer<typeof sendEmailSchema>;
+
 export async function POST(request: NextRequest) {
-  try {
-    // Check authentication and admin role
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-    
-    if (!token || token.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+  // Validate request body
+  const validation = await validateAdminRequest<SendEmailRequest>(request, sendEmailSchema);
+  if (!validation.success) {
+    return adminApiResponse(validation);
+  }
 
-    // Parse and validate request body
-    const body = await request.json();
-    const { type, businessId, recipientEmail, reason } = sendEmailSchema.parse(body);
+  const { type, businessId, recipientEmail, reason } = validation.data;
 
-    let result;
+  // Handle admin authentication and email logic
+  const result = await withAdminAuth(async (session) => {
+    let emailResult;
 
     switch (type) {
       case 'welcome':
-        result = await sendWelcomeEmail({
+        emailResult = await sendWelcomeEmail({
           userEmail: recipientEmail,
-          userName: recipientEmail.split('@')[0], // Fallback name
+          userName: recipientEmail.split('@')[0] || 'User', // Fallback name
         });
         break;
 
@@ -41,10 +38,7 @@ export async function POST(request: NextRequest) {
       case 'business_rejected':
       case 'business_suspended':
         if (!businessId) {
-          return NextResponse.json(
-            { error: 'Business ID required for business status emails' },
-            { status: 400 }
-          );
+          throw new Error('Business ID required for business status emails');
         }
 
         // Get business details
@@ -67,10 +61,7 @@ export async function POST(request: NextRequest) {
         });
 
         if (!business) {
-          return NextResponse.json(
-            { error: 'Business not found' },
-            { status: 404 }
-          );
+          throw new Error('Business not found');
         }
 
         const statusMap = {
@@ -79,43 +70,41 @@ export async function POST(request: NextRequest) {
           business_suspended: 'SUSPENDED',
         } as const;
 
-        result = await sendBusinessStatusEmail({
+        emailResult = await sendBusinessStatusEmail({
           businessId: business.id,
           businessName: business.name,
           ownerName: business.owner.name || business.owner.email,
           ownerEmail: business.owner.email,
           status: statusMap[type] as "DRAFT" | "PENDING" | "ACTIVE" | "SUSPENDED" | "REJECTED",
-          reason,
-          categoryName: business.category?.name,
+          ...(reason && { reason }),
+          ...(business.category?.name && { categoryName: business.category.name }),
         });
         break;
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid email type' },
-          { status: 400 }
-        );
+        throw new Error('Invalid email type');
     }
 
-    return NextResponse.json({
-      success: true,
-      emailId: result.emailId,
-      message: 'Email sent successfully',
-    });
-
-  } catch (error) {
-    console.error('Send email error:', error);
-    
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid request data', details: error.issues },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Failed to send email' },
-      { status: 500 }
+    // Log admin action
+    await logAdminAction(
+      session.user.id,
+      'send_email',
+      'email',
+      emailResult.emailId || 'unknown',
+      {
+        emailType: type,
+        recipientEmail,
+        businessId,
+        reason,
+      }
     );
-  }
+
+    return {
+      success: true,
+      emailId: emailResult.emailId,
+      message: 'Email sent successfully',
+    };
+  });
+
+  return adminApiResponse(result);
 }

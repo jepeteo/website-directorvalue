@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { sendBusinessStatusEmail } from '@/lib/email-service';
-import { z } from 'zod';
+import { withAdminAuth, adminApiResponse, validateAdminRequest, logAdminAction } from '@/lib/admin-api';
 
 const businessStatusSchema = z.object({
   businessId: z.string(),
@@ -11,22 +11,19 @@ const businessStatusSchema = z.object({
   sendEmail: z.boolean().default(true),
 });
 
+type BusinessStatusRequest = z.infer<typeof businessStatusSchema>;
+
 export async function POST(request: NextRequest) {
-  try {
-    // Check authentication and admin role
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-    
-    if (!token || token.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+  // Validate request body
+  const validation = await validateAdminRequest<BusinessStatusRequest>(request, businessStatusSchema);
+  if (!validation.success) {
+    return adminApiResponse(validation);
+  }
 
-    // Parse and validate request body
-    const body = await request.json();
-    const { businessId, status, reason, sendEmail } = businessStatusSchema.parse(body);
+  const { businessId, status, reason, sendEmail } = validation.data;
 
+  // Handle admin authentication and business logic
+  const result = await withAdminAuth(async (session) => {
     // Get the business with owner details
     const business = await prisma.business.findUnique({
       where: { id: businessId },
@@ -47,10 +44,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!business) {
-      return NextResponse.json(
-        { error: 'Business not found' },
-        { status: 404 }
-      );
+      throw new Error('Business not found');
     }
 
     // Update business status
@@ -76,21 +70,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Create admin action log
-    await prisma.adminActionLog.create({
-      data: {
-        adminId: token.sub!,
-        action: 'BUSINESS_STATUS_CHANGE',
-        targetType: 'BUSINESS',
-        targetId: businessId,
-        details: {
-          previousStatus: business.status,
-          newStatus: status,
-          reason,
-        },
-        createdAt: new Date(),
-      },
-    });
+    // Log admin action
+    await logAdminAction(
+      session.user.id,
+      'BUSINESS_STATUS_CHANGE',
+      'BUSINESS',
+      businessId,
+      {
+        previousStatus: business.status,
+        newStatus: status,
+        reason,
+      }
+    );
 
     // Send email notification if requested
     if (sendEmail && business.owner.email) {
@@ -101,8 +92,8 @@ export async function POST(request: NextRequest) {
           ownerName: business.owner.name || business.owner.email,
           ownerEmail: business.owner.email,
           status,
-          reason,
-          categoryName: business.category?.name,
+          ...(reason && { reason }),
+          ...(business.category?.name && { categoryName: business.category.name }),
         });
       } catch (emailError) {
         console.error('Failed to send status email:', emailError);
@@ -110,25 +101,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
+    return {
       success: true,
       business: updatedBusiness,
       message: `Business ${status.toLowerCase()} successfully`,
-    });
+    };
+  });
 
-  } catch (error) {
-    console.error('Business status update error:', error);
-    
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid request data', details: error.issues },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  return adminApiResponse(result);
 }

@@ -303,7 +303,7 @@ export default async function AdminReportsPage() {
                     </p>
                     {review.title && (
                       <p className="text-xs text-gray-600 mt-1">
-                        "{review.title}"
+                        &ldquo;{review.title}&rdquo;
                       </p>
                     )}
                   </div>

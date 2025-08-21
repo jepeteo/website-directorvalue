@@ -48,34 +48,32 @@ async function getAdminAnalytics() {
         _avg: { rating: true },
       }),
 
-      // Recent users (last 7 days)
+      // Recent users (current month)
       prisma.user.count({
         where: {
           createdAt: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
           },
         },
       }),
 
-      // Recent businesses (last 7 days)
+      // Recent businesses (current month)
       prisma.business.count({
         where: {
           createdAt: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
           },
         },
       }),
 
-      // Recent reviews (last 7 days)
+      // Recent reviews (current month)
       prisma.review.count({
         where: {
           createdAt: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
           },
         },
-      }),
-
-      // Category statistics
+      }), // Category statistics
       prisma.business.groupBy({
         by: ["categoryId"],
         _count: {
@@ -99,8 +97,12 @@ async function getAdminAnalytics() {
       prisma.user.count({
         where: {
           createdAt: {
-            gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-            lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+            gte: new Date(
+              new Date().getFullYear(),
+              new Date().getMonth() - 1,
+              1
+            ),
+            lt: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
           },
         },
       }),
@@ -109,8 +111,12 @@ async function getAdminAnalytics() {
       prisma.business.count({
         where: {
           createdAt: {
-            gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-            lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+            gte: new Date(
+              new Date().getFullYear(),
+              new Date().getMonth() - 1,
+              1
+            ),
+            lt: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
           },
         },
       }),
@@ -119,14 +125,18 @@ async function getAdminAnalytics() {
       prisma.review.count({
         where: {
           createdAt: {
-            gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-            lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+            gte: new Date(
+              new Date().getFullYear(),
+              new Date().getMonth() - 1,
+              1
+            ),
+            lt: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
           },
         },
       }),
     ]);
 
-    // Calculate growth percentages
+    // Calculate growth percentages (current month vs last month)
     const usersGrowth =
       userGrowthLastMonth > 0
         ? Number(
