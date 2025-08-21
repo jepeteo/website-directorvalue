@@ -15,17 +15,30 @@ interface AnalyticsData {
   totalViews: number;
   totalClicks: number;
   totalReviews: number;
+  totalLeads?: number;
   averageRating: number;
   monthlyGrowth: {
     views: number;
     clicks: number;
     reviews: number;
+    leads?: number;
   };
   recentActivity: Array<{
     date: string;
     views: number;
     clicks: number;
     reviews: number;
+    leads?: number;
+  }>;
+  businesses?: Array<{
+    id: string;
+    name: string;
+    status?: string;
+    planType?: string;
+    reviewCount: number;
+    leadCount?: number;
+    averageRating: number;
+    memberSince?: string;
   }>;
 }
 
@@ -40,7 +53,7 @@ export default function AnalyticsDashboard({
   const [timeRange, setTimeRange] = useState("7d");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<
-    "views" | "clicks" | "reviews"
+    "views" | "clicks" | "reviews" | "leads"
   >("views");
 
   const handleTimeRangeChange = async (range: string) => {
@@ -160,7 +173,7 @@ export default function AnalyticsDashboard({
                 {isLoading ? "..." : data.totalClicks}
               </p>
             </div>
-            <Users className="h-8 w-8 text-green-500" />
+            <BarChart3 className="h-8 w-8 text-green-500" />
           </div>
           <div className="mt-4 flex items-center text-sm">
             <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
@@ -199,29 +212,27 @@ export default function AnalyticsDashboard({
           </div>
         </div>
 
-        <div className="bg-card rounded-lg border p-6">
+        <div 
+          className="bg-card rounded-lg border p-6 cursor-pointer transition-all hover:shadow-md"
+          onClick={() => setSelectedMetric("leads")}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                Average Rating
+                Total Leads
               </p>
-              <p className="text-2xl font-bold">{data.averageRating}/5</p>
+              <p className="text-2xl font-bold">
+                {isLoading ? "..." : (data.totalLeads || 0)}
+              </p>
             </div>
-            <Star className="h-8 w-8 text-yellow-500" />
+            <Users className="h-8 w-8 text-orange-500" />
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <div className="flex">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star
-                  key={star}
-                  className={`h-4 w-4 ${
-                    star <= Math.floor(data.averageRating)
-                      ? "text-yellow-400 fill-current"
-                      : "text-gray-300"
-                  }`}
-                />
-              ))}
-            </div>
+            <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+            <span className="text-green-500">
+              +{data.monthlyGrowth.leads || 0}%
+            </span>
+            <span className="text-muted-foreground ml-2">from last month</span>
           </div>
         </div>
       </div>
@@ -272,25 +283,26 @@ export default function AnalyticsDashboard({
         </div>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-4 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
+          <div className="grid grid-cols-5 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
             <div>Date</div>
             <div>Views</div>
             <div>Clicks</div>
             <div>Reviews</div>
+            <div>Leads</div>
           </div>
 
           {data.recentActivity.map((day, index) => {
             const maxValue = Math.max(
-              ...data.recentActivity.map((d) => d[selectedMetric])
+              ...data.recentActivity.map((d) => d[selectedMetric] || 0)
             );
-            const currentValue = day[selectedMetric];
+            const currentValue = day[selectedMetric] || 0;
             const percentage =
               maxValue > 0 ? (currentValue / maxValue) * 100 : 0;
 
             return (
               <div
                 key={index}
-                className={`grid grid-cols-4 gap-4 text-sm py-2 border-b border-border/50 transition-all hover:bg-muted/50 rounded px-2 ${
+                className={`grid grid-cols-5 gap-4 text-sm py-2 border-b border-border/50 transition-all hover:bg-muted/50 rounded px-2 ${
                   selectedMetric === "views" &&
                   "hover:bg-blue-50 dark:hover:bg-blue-950/30"
                 } ${
@@ -299,6 +311,9 @@ export default function AnalyticsDashboard({
                 } ${
                   selectedMetric === "reviews" &&
                   "hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                } ${
+                  selectedMetric === "leads" &&
+                  "hover:bg-orange-50 dark:hover:bg-orange-950/30"
                 }`}
               >
                 <div className="font-medium">
@@ -352,11 +367,65 @@ export default function AnalyticsDashboard({
                   </div>
                   {day.reviews}
                 </div>
+                <div className="flex items-center">
+                  <div className="w-16 bg-orange-100 dark:bg-orange-900/30 rounded-full h-2 mr-2">
+                    <div
+                      className="bg-orange-500 h-2 rounded-full transition-all"
+                      style={{
+                        width: `${
+                          selectedMetric === "leads"
+                            ? percentage
+                            : ((day.leads || 0) / 2) * 100
+                        }%`,
+                      }}
+                    />
+                  </div>
+                  {day.leads || 0}
+                </div>
               </div>
             );
           })}
         </div>
       </div>
+
+      {/* Business Performance */}
+      {data.businesses && data.businesses.length > 0 && (
+        <div className="bg-card rounded-lg border p-6">
+          <h2 className="text-xl font-semibold mb-6">Business Performance</h2>
+          <div className="space-y-4">
+            {data.businesses.map((business) => (
+              <div key={business.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="flex-1">
+                  <h3 className="font-medium">{business.name}</h3>
+                  <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                    <span>{business.reviewCount} reviews</span>
+                    <span>{business.leadCount || 0} leads</span>
+                    <span className="flex items-center">
+                      <Star className="h-4 w-4 text-yellow-400 mr-1" />
+                      {business.averageRating}/5
+                    </span>
+                    {business.planType && (
+                      <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs">
+                        {business.planType}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  {business.memberSince && (
+                    <p className="text-sm text-muted-foreground">
+                      Since {new Date(business.memberSince).toLocaleDateString("en-US", { 
+                        year: "numeric", 
+                        month: "short" 
+                      })}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Upgrade Notice */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 rounded-lg border border-blue-200 dark:border-blue-800 p-6">

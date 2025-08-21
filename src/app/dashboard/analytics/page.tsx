@@ -5,7 +5,7 @@ import AnalyticsDashboard from "@/components/dashboard/analytics-dashboard";
 
 async function getAnalyticsData(userId: string) {
   try {
-    // Get user's businesses
+    // Get user's businesses with more detailed information
     const businesses = await prisma.business.findMany({
       where: {
         ownerId: userId,
@@ -13,10 +13,26 @@ async function getAnalyticsData(userId: string) {
       select: {
         id: true,
         name: true,
+        status: true,
+        planType: true,
+        createdAt: true,
         reviews: {
           select: {
             rating: true,
             createdAt: true,
+          },
+        },
+        leads: {
+          select: {
+            id: true,
+            createdAt: true,
+            status: true,
+          },
+        },
+        _count: {
+          select: {
+            reviews: true,
+            leads: true,
           },
         },
       },
@@ -31,27 +47,62 @@ async function getAnalyticsData(userId: string) {
           totalReviews
         : 0;
 
-    // Mock views and clicks for now (in production, these would come from analytics service)
-    const totalViews = Math.floor(Math.random() * 2000) + 500;
-    const totalClicks = Math.floor(Math.random() * 200) + 50;
+    // Calculate actual lead statistics
+    const allLeads = businesses.flatMap((b) => b.leads);
+    const totalLeads = allLeads.length;
 
-    // Calculate growth metrics (mock for now)
+    // Calculate real growth metrics based on recent data
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+    const recentReviews = allReviews.filter(r => new Date(r.createdAt) >= thirtyDaysAgo).length;
+    const previousReviews = allReviews.filter(r => 
+      new Date(r.createdAt) >= sixtyDaysAgo && new Date(r.createdAt) < thirtyDaysAgo
+    ).length;
+
+    const recentLeads = allLeads.filter(l => new Date(l.createdAt) >= thirtyDaysAgo).length;
+    const previousLeads = allLeads.filter(l => 
+      new Date(l.createdAt) >= sixtyDaysAgo && new Date(l.createdAt) < thirtyDaysAgo
+    ).length;
+
+    // Calculate growth percentages
+    const reviewsGrowth = previousReviews > 0 
+      ? ((recentReviews - previousReviews) / previousReviews) * 100
+      : recentReviews > 0 ? 100 : 0;
+
+    const leadsGrowth = previousLeads > 0 
+      ? ((recentLeads - previousLeads) / previousLeads) * 100
+      : recentLeads > 0 ? 100 : 0;
+
+    // Estimate views and clicks based on business activity (more realistic than random)
+    const baseViews = Math.max(totalReviews * 50, totalLeads * 20, 100); // Reviews and leads indicate visibility
+    const totalViews = baseViews + Math.floor(Math.random() * 500);
+    const totalClicks = Math.floor(totalViews * 0.05) + Math.floor(Math.random() * 20); // ~5% CTR
+
     const monthlyGrowth = {
-      views: Math.random() * 20 - 5, // -5% to +15%
-      clicks: Math.random() * 15 - 2, // -2% to +13%
-      reviews: totalReviews > 0 ? Math.random() * 25 : 0, // 0% to +25%
+      views: Math.random() * 20 - 5, // Still mock as we don't track views yet
+      clicks: Math.random() * 15 - 2, // Still mock as we don't track clicks yet
+      reviews: Number(reviewsGrowth.toFixed(1)),
+      leads: Number(leadsGrowth.toFixed(1)),
     };
 
-    // Generate recent activity (last 7 days)
+    // Generate recent activity with real review and lead data (last 7 days)
     const recentActivity = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-
+      
       // Count actual reviews for this date
       const dailyReviews = allReviews.filter((review) => {
         const reviewDate = new Date(review.createdAt);
         return reviewDate.toDateString() === date.toDateString();
+      }).length;
+
+      // Count actual leads for this date
+      const dailyLeads = allLeads.filter((lead) => {
+        const leadDate = new Date(lead.createdAt);
+        return leadDate.toDateString() === date.toDateString();
       }).length;
 
       recentActivity.push({
@@ -59,6 +110,7 @@ async function getAnalyticsData(userId: string) {
         views: Math.floor(Math.random() * 80) + 20, // Mock
         clicks: Math.floor(Math.random() * 10) + 1, // Mock
         reviews: dailyReviews,
+        leads: dailyLeads,
       });
     }
 
@@ -66,17 +118,17 @@ async function getAnalyticsData(userId: string) {
       totalViews,
       totalClicks,
       totalReviews,
+      totalLeads,
       averageRating: Number(averageRating.toFixed(1)),
-      monthlyGrowth: {
-        views: Number(monthlyGrowth.views.toFixed(1)),
-        clicks: Number(monthlyGrowth.clicks.toFixed(1)),
-        reviews: Number(monthlyGrowth.reviews.toFixed(1)),
-      },
+      monthlyGrowth,
       recentActivity,
       businesses: businesses.map((b) => ({
         id: b.id,
         name: b.name,
+        status: b.status,
+        planType: b.planType,
         reviewCount: b.reviews.length,
+        leadCount: b.leads.length,
         averageRating:
           b.reviews.length > 0
             ? Number(
@@ -86,6 +138,7 @@ async function getAnalyticsData(userId: string) {
                 ).toFixed(1)
               )
             : 0,
+        memberSince: b.createdAt.toISOString().split("T")[0],
       })),
     };
   } catch (error) {
@@ -95,11 +148,13 @@ async function getAnalyticsData(userId: string) {
       totalViews: 0,
       totalClicks: 0,
       totalReviews: 0,
+      totalLeads: 0,
       averageRating: 0,
       monthlyGrowth: {
         views: 0,
         clicks: 0,
         reviews: 0,
+        leads: 0,
       },
       recentActivity: [],
       businesses: [],
