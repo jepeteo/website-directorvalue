@@ -86,8 +86,10 @@ model User {
   sessions       Session[]
   businesses     Business[]
   reviews        Review[]
+  reviewResponses ReviewResponse[] @relation("ReviewResponses")
   abuseReports   AbuseReport[]
   adminActions   AdminActionLog[]
+  settingsUpdates Setting[]
 }
 
 model Business {
@@ -187,10 +189,29 @@ model Review {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   abuseReports AbuseReport[]
+  ownerResponse ReviewResponse?
   
   @@index([businessId])
+  @@index([userId])
   @@index([rating])
   @@index([isHidden])
+}
+
+model ReviewResponse {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  reviewId String @unique
+  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  
+  ownerId  String
+  owner    User   @relation("ReviewResponses", fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  @@index([reviewId])
+  @@index([ownerId])
 }
 
 enum AbuseReportType {
@@ -237,10 +258,24 @@ model Lead {
   name       String
   email      String
   phone      String?
+  company    String?
   message    String   @db.Text
-  source     String   // "contact_form", "vip_relay", etc.
+  source     String   // "contact_form", "vip_relay", "quick_quote", etc.
+  status     LeadStatus @default(NEW)
+  priority   LeadPriority @default(MEDIUM)
+  
+  // Lead details
+  budget     String?  // Budget range or specific amount
+  timeline   String?  // When they need the service
+  location   String?  // Service location if different from business
+  
+  // Tracking
+  viewedAt   DateTime?
+  respondedAt DateTime?
+  convertedAt DateTime?
   
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   
   // Relations
   businessId String?
@@ -248,6 +283,24 @@ model Lead {
   
   @@index([businessId])
   @@index([source])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum LeadStatus {
+  NEW
+  VIEWED
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  CLOSED_LOST
+}
+
+enum LeadPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }
 
 // Admin Action Log model for audit trail
@@ -267,4 +320,25 @@ model AdminActionLog {
   @@index([action])
   @@index([targetType])
   @@index([createdAt])
+}
+
+// Settings model for system configuration
+model Setting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String   @db.Text
+  category    String   // "general", "security", "email", "features", "integrations"
+  description String?
+  type        String   // "string", "boolean", "number", "json"
+  isPublic    Boolean  @default(false) // Whether setting can be accessed publicly
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  updatedBy   String
+  
+  // Relations
+  updatedByUser User @relation(fields: [updatedBy], references: [id])
+  
+  @@index([category])
+  @@index([key])
+  @@index([isPublic])
 }
