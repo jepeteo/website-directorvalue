@@ -7,9 +7,9 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 interface BusinessPageProps {
-  params: {
+  params: Promise<{
     businessId: string;
-  };
+  }>;
 }
 
 export default async function BusinessLeadsPage({ params }: BusinessPageProps) {
@@ -21,8 +21,9 @@ export default async function BusinessLeadsPage({ params }: BusinessPageProps) {
 
   try {
     const businesses = await getBusinessesByOwner(session.user.id);
+    const { businessId } = await params;
     const business = businesses.find(
-      (b: { id: string }) => b.id === params.businessId
+      (b: { id: string }) => b.id === businessId
     );
 
     if (!business) {

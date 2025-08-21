@@ -10,7 +10,7 @@ const responseSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { businessId: string } }
+  { params }: { params: Promise<{ businessId: string }> }
 ) {
   try {
     const session = await auth()
@@ -18,7 +18,8 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { businessId } = params
+    const { businessId } = await params
+
     const body = await request.json()
     const { reviewId, response: responseContent } = responseSchema.parse(body)
 

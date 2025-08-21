@@ -9,7 +9,7 @@ const updateLeadSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { businessId: string; leadId: string } }
+  { params }: { params: Promise<{ businessId: string; leadId: string }> }
 ) {
   try {
     const session = await auth()
@@ -17,7 +17,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { businessId, leadId } = params
+    const { businessId, leadId } = await params
 
     // Verify user owns this business
     const business = await prisma.business.findFirst({
@@ -71,7 +71,7 @@ export async function PATCH(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { businessId: string; leadId: string } }
+  { params }: { params: Promise<{ businessId: string; leadId: string }> }
 ) {
   try {
     const session = await auth()
@@ -79,7 +79,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { businessId, leadId } = params
+    const { businessId, leadId } = await params
 
     // Verify user owns this business
     const business = await prisma.business.findFirst({

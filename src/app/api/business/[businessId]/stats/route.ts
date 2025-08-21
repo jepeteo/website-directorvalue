@@ -3,10 +3,10 @@ import { prisma } from "@/lib/prisma"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { businessId: string } }
+  { params }: { params: Promise<{ businessId: string }> }
 ) {
   try {
-    const { businessId } = params
+    const { businessId } = await params
 
     // Get review statistics
     const reviewStats = await prisma.review.aggregate({
