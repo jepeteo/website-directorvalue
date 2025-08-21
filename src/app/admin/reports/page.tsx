@@ -1,4 +1,7 @@
 import { Metadata } from "next";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import {
   Flag,
   AlertTriangle,
@@ -15,152 +18,137 @@ import {
 
 export const metadata: Metadata = {
   title: "Reports - Admin Dashboard",
-  description: "Abuse reports and content moderation",
+  description: "Content moderation and reporting",
 };
 
-export default function AdminReportsPage() {
-  // Mock reports data - in production, this would come from your database
-  const reportsData = {
-    overview: {
-      totalReports: 127,
-      pendingReports: 23,
-      resolvedReports: 89,
-      dismissedReports: 15,
-    },
-    reportTypes: {
-      inappropriate_content: 45,
-      spam: 32,
-      fake_business: 28,
-      harassment: 15,
-      other: 7,
-    },
-    recentReports: [
-      {
-        id: "rpt_001",
-        type: "inappropriate_content",
-        subject: "Review contains offensive language",
-        targetType: "review",
-        targetId: "rev_123",
-        targetTitle: "Review for Café Central",
-        reporterName: "Anonymous",
-        reportedUserName: "John Doe",
-        reason: "Contains profanity and inappropriate language",
-        status: "pending",
-        priority: "high",
-        date: "2025-08-20T14:30:00Z",
-      },
-      {
-        id: "rpt_002",
-        type: "spam",
-        subject: "Fake business listing",
-        targetType: "business",
-        targetId: "bus_456",
-        targetTitle: "Tech Solutions Pro",
-        reporterName: "Sarah Johnson",
-        reportedUserName: "Mike Chen",
-        reason:
-          "This appears to be a duplicate listing of an existing business",
-        status: "investigating",
-        priority: "medium",
-        date: "2025-08-20T13:45:00Z",
-      },
-      {
-        id: "rpt_003",
-        type: "fake_business",
-        subject: "Non-existent business",
-        targetType: "business",
-        targetId: "bus_789",
-        targetTitle: "Green Garden Restaurant",
-        reporterName: "Lisa Rodriguez",
-        reportedUserName: "Unknown",
-        reason: "This business does not exist at the listed address",
-        status: "resolved",
-        priority: "high",
-        date: "2025-08-19T16:20:00Z",
-        resolution: "Business listing removed after verification",
-      },
-      {
-        id: "rpt_004",
-        type: "harassment",
-        subject: "Threatening behavior in messages",
-        targetType: "user",
-        targetId: "usr_321",
-        targetTitle: "User Profile: David Thompson",
-        reporterName: "Anonymous",
-        reportedUserName: "David Thompson",
-        reason: "User is sending threatening messages through the platform",
-        status: "dismissed",
-        priority: "high",
-        date: "2025-08-19T14:15:00Z",
-        resolution: "No evidence found after investigation",
-      },
-    ],
-  };
+async function getReportsData() {
+  try {
+    const [
+      totalReviews,
+      hiddenReviews,
+      flaggedBusinesses,
+      suspendedBusinesses,
+      recentReviews,
+      recentBusinesses,
+    ] = await Promise.all([
+      // Total reviews
+      prisma.review.count(),
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Clock className="h-4 w-4 text-yellow-600" />;
-      case "investigating":
-        return <Eye className="h-4 w-4 text-blue-600" />;
-      case "resolved":
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case "dismissed":
-        return <XCircle className="h-4 w-4 text-gray-600" />;
-      default:
-        return <AlertTriangle className="h-4 w-4 text-red-600" />;
-    }
-  };
+      // Hidden reviews (our current moderation system)
+      prisma.review.count({
+        where: { isHidden: true },
+      }),
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "text-yellow-700 bg-yellow-50 border-yellow-200";
-      case "investigating":
-        return "text-blue-700 bg-blue-50 border-blue-200";
-      case "resolved":
-        return "text-green-700 bg-green-50 border-green-200";
-      case "dismissed":
-        return "text-gray-700 bg-gray-50 border-gray-200";
-      default:
-        return "text-red-700 bg-red-50 border-red-200";
-    }
-  };
+      // Businesses that need review (pending/draft status)
+      prisma.business.count({
+        where: {
+          status: {
+            in: ["PENDING", "DRAFT"],
+          },
+        },
+      }),
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "text-red-700 bg-red-50";
-      case "medium":
-        return "text-yellow-700 bg-yellow-50";
-      case "low":
-        return "text-green-700 bg-green-50";
-      default:
-        return "text-gray-700 bg-gray-50";
-    }
-  };
+      // Suspended businesses
+      prisma.business.count({
+        where: { status: "SUSPENDED" },
+      }),
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "inappropriate_content":
-        return <MessageSquare className="h-4 w-4" />;
-      case "spam":
-        return <Flag className="h-4 w-4" />;
-      case "fake_business":
-        return <Building2 className="h-4 w-4" />;
-      case "harassment":
-        return <Shield className="h-4 w-4" />;
-      default:
-        return <AlertTriangle className="h-4 w-4" />;
-    }
-  };
+      // Recent reviews that might need moderation
+      prisma.review.findMany({
+        take: 10,
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+          business: {
+            select: {
+              name: true,
+              slug: true,
+            },
+          },
+        },
+      }),
+
+      // Recent businesses that need approval
+      prisma.business.findMany({
+        where: {
+          status: {
+            in: ["PENDING", "DRAFT"],
+          },
+        },
+        take: 10,
+        orderBy: { createdAt: "desc" },
+        include: {
+          owner: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      overview: {
+        totalReviews,
+        hiddenReviews,
+        pendingBusinesses: flaggedBusinesses,
+        suspendedBusinesses,
+      },
+      contentTypes: {
+        reviews: totalReviews,
+        businesses: flaggedBusinesses,
+        hidden_reviews: hiddenReviews,
+        suspended_businesses: suspendedBusinesses,
+      },
+      recentItems: {
+        reviews: recentReviews,
+        businesses: recentBusinesses,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching reports data:", error);
+    return {
+      overview: {
+        totalReviews: 0,
+        hiddenReviews: 0,
+        pendingBusinesses: 0,
+        suspendedBusinesses: 0,
+      },
+      contentTypes: {
+        reviews: 0,
+        businesses: 0,
+        hidden_reviews: 0,
+        suspended_businesses: 0,
+      },
+      recentItems: {
+        reviews: [],
+        businesses: [],
+      },
+    };
+  }
+}
+
+export default async function AdminReportsPage() {
+  const session = await auth();
+
+  if (!session?.user?.id || session.user.role !== "ADMIN") {
+    redirect("/auth/signin");
+  }
+
+  const reportsData = await getReportsData();
 
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Content Moderation</h1>
         <p className="text-gray-600 mt-2">
-          Abuse reports and content moderation
+          Review and moderate platform content
         </p>
       </div>
 
@@ -169,183 +157,227 @@ export default function AdminReportsPage() {
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Reports</p>
+              <p className="text-sm font-medium text-gray-600">Total Reviews</p>
               <p className="text-2xl font-bold text-gray-900">
-                {reportsData.overview.totalReports}
+                {reportsData.overview.totalReviews}
               </p>
-              <p className="text-sm text-gray-500 mt-1">All time</p>
             </div>
-            <Flag className="h-8 w-8 text-red-600" />
+            <MessageSquare className="h-8 w-8 text-blue-500" />
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <span className="text-gray-500">All user reviews</span>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-yellow-600">
-                {reportsData.overview.pendingReports}
+              <p className="text-sm font-medium text-gray-600">
+                Hidden Reviews
               </p>
-              <p className="text-sm text-yellow-600 mt-1">Needs attention</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {reportsData.overview.hiddenReviews}
+              </p>
             </div>
-            <Clock className="h-8 w-8 text-yellow-600" />
+            <EyeOff className="h-8 w-8 text-orange-500" />
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <span className="text-gray-500">Moderated content</span>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Resolved</p>
-              <p className="text-2xl font-bold text-green-600">
-                {reportsData.overview.resolvedReports}
+              <p className="text-sm font-medium text-gray-600">
+                Pending Businesses
               </p>
-              <p className="text-sm text-green-600 mt-1">Action taken</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {reportsData.overview.pendingBusinesses}
+              </p>
             </div>
-            <CheckCircle className="h-8 w-8 text-green-600" />
+            <Clock className="h-8 w-8 text-yellow-500" />
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <span className="text-gray-500">Awaiting approval</span>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Dismissed</p>
-              <p className="text-2xl font-bold text-gray-600">
-                {reportsData.overview.dismissedReports}
+              <p className="text-sm font-medium text-gray-600">Suspended</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {reportsData.overview.suspendedBusinesses}
               </p>
-              <p className="text-sm text-gray-500 mt-1">No action needed</p>
             </div>
-            <XCircle className="h-8 w-8 text-gray-600" />
+            <XCircle className="h-8 w-8 text-red-500" />
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <span className="text-gray-500">Suspended businesses</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        {/* Report Types */}
+      {/* Content Type Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <div className="bg-white rounded-lg shadow-sm border p-6">
-          <h2 className="text-xl font-semibold mb-6">Report Types</h2>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Content Overview
+          </h3>
           <div className="space-y-4">
-            {Object.entries(reportsData.reportTypes).map(
-              ([type, count], index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    {getTypeIcon(type)}
-                    <span className="font-medium text-gray-900 capitalize">
-                      {type.replace("_", " ")}
-                    </span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <MessageSquare className="h-5 w-5 text-blue-500 mr-3" />
+                <span className="text-sm font-medium text-gray-900">
+                  Reviews
+                </span>
+              </div>
+              <span className="text-sm text-gray-600">
+                {reportsData.contentTypes.reviews} total
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Building2 className="h-5 w-5 text-green-500 mr-3" />
+                <span className="text-sm font-medium text-gray-900">
+                  Pending Businesses
+                </span>
+              </div>
+              <span className="text-sm text-gray-600">
+                {reportsData.contentTypes.businesses} awaiting approval
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <EyeOff className="h-5 w-5 text-orange-500 mr-3" />
+                <span className="text-sm font-medium text-gray-900">
+                  Hidden Reviews
+                </span>
+              </div>
+              <span className="text-sm text-gray-600">
+                {reportsData.contentTypes.hidden_reviews} moderated
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <XCircle className="h-5 w-5 text-red-500 mr-3" />
+                <span className="text-sm font-medium text-gray-900">
+                  Suspended
+                </span>
+              </div>
+              <span className="text-sm text-gray-600">
+                {reportsData.contentTypes.suspended_businesses} businesses
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Reviews */}
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Recent Reviews
+          </h3>
+          <div className="space-y-4">
+            {reportsData.recentItems.reviews.length > 0 ? (
+              reportsData.recentItems.reviews.map((review) => (
+                <div key={review.id} className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    {review.isHidden ? (
+                      <EyeOff className="h-5 w-5 text-orange-500" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-green-500" />
+                    )}
                   </div>
-                  <span className="text-lg font-semibold text-gray-600">
-                    {count}
-                  </span>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-900">
+                      {review.rating}-star review for {review.business.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      by {review.user.name || review.user.email} •{" "}
+                      {new Date(review.createdAt).toLocaleDateString()}
+                      {review.isHidden && " • Hidden"}
+                    </p>
+                    {review.title && (
+                      <p className="text-xs text-gray-600 mt-1">
+                        "{review.title}"
+                      </p>
+                    )}
+                  </div>
                 </div>
-              )
+              ))
+            ) : (
+              <p className="text-sm text-gray-500">No recent reviews</p>
             )}
           </div>
         </div>
+      </div>
 
-        {/* Quick Actions */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border p-6">
-          <h2 className="text-xl font-semibold mb-6">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button className="flex items-center justify-center space-x-2 bg-red-50 hover:bg-red-100 text-red-700 p-4 rounded-lg transition-colors">
-              <Flag className="h-5 w-5" />
-              <span>Review Pending Reports</span>
-            </button>
-            <button className="flex items-center justify-center space-x-2 bg-blue-50 hover:bg-blue-100 text-blue-700 p-4 rounded-lg transition-colors">
-              <Eye className="h-5 w-5" />
-              <span>Investigate High Priority</span>
-            </button>
-            <button className="flex items-center justify-center space-x-2 bg-green-50 hover:bg-green-100 text-green-700 p-4 rounded-lg transition-colors">
-              <Shield className="h-5 w-5" />
-              <span>Content Moderation</span>
-            </button>
-            <button className="flex items-center justify-center space-x-2 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 p-4 rounded-lg transition-colors">
-              <AlertTriangle className="h-5 w-5" />
-              <span>Escalated Cases</span>
-            </button>
-          </div>
+      {/* Pending Businesses */}
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Businesses Awaiting Approval
+        </h3>
+        <div className="space-y-4">
+          {reportsData.recentItems.businesses.length > 0 ? (
+            reportsData.recentItems.businesses.map((business) => (
+              <div
+                key={business.id}
+                className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg"
+              >
+                <div className="flex items-center">
+                  <Building2 className="h-8 w-8 text-yellow-500 mr-3" />
+                  <div>
+                    <p className="font-medium text-gray-900">{business.name}</p>
+                    <p className="text-sm text-gray-600">
+                      by {business.owner.name || business.owner.email} •{" "}
+                      {business.status}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Submitted{" "}
+                      {new Date(business.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <button className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200">
+                    Approve
+                  </button>
+                  <button className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200">
+                    Reject
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-gray-500">
+              No businesses pending approval
+            </p>
+          )}
         </div>
       </div>
 
-      {/* Recent Reports */}
-      <div className="bg-white rounded-lg shadow-sm border">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold">Recent Reports</h2>
-        </div>
-        <div className="divide-y divide-gray-200">
-          {reportsData.recentReports.map((report) => (
-            <div key={report.id} className="p-6 hover:bg-gray-50">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    {getTypeIcon(report.type)}
-                    <h3 className="text-lg font-medium text-gray-900">
-                      {report.subject}
-                    </h3>
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
-                        report.priority
-                      )}`}
-                    >
-                      {report.priority} priority
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        Target
-                      </p>
-                      <p className="text-sm text-gray-900">
-                        {report.targetTitle}
-                      </p>
-                      <p className="text-xs text-gray-500 capitalize">
-                        {report.targetType}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        Reporter
-                      </p>
-                      <p className="text-sm text-gray-900">
-                        {report.reporterName}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        Reported User
-                      </p>
-                      <p className="text-sm text-gray-900">
-                        {report.reportedUserName}
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-700 mb-3">{report.reason}</p>
-                  {report.resolution && (
-                    <div className="bg-green-50 border border-green-200 rounded p-3 mb-3">
-                      <p className="text-sm font-medium text-green-800">
-                        Resolution:
-                      </p>
-                      <p className="text-sm text-green-700">
-                        {report.resolution}
-                      </p>
-                    </div>
-                  )}
-                  <p className="text-xs text-gray-500">
-                    {new Date(report.date).toLocaleString()}
-                  </p>
-                </div>
-                <div className="ml-6">
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
-                      report.status
-                    )}`}
-                  >
-                    {getStatusIcon(report.status)}
-                    <span className="ml-2 capitalize">{report.status}</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
+      {/* Future Reports System Notice */}
+      <div className="bg-blue-50 rounded-lg border border-blue-200 p-6 mt-8">
+        <div className="flex items-start space-x-3">
+          <Flag className="h-5 w-5 text-blue-600 mt-0.5" />
+          <div>
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">
+              Abuse Reporting System
+            </h3>
+            <p className="text-blue-700 mb-4">
+              Full abuse reporting system with user reports, automated flagging,
+              and comprehensive moderation tools will be implemented in the next
+              phase.
+            </p>
+            <p className="text-sm text-blue-600">
+              Current moderation is handled through manual review and admin
+              controls.
+            </p>
+          </div>
         </div>
       </div>
     </div>

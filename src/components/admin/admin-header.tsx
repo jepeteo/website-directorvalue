@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,14 @@ interface AdminHeaderProps {
 }
 
 export function AdminHeader({ user }: AdminHeaderProps) {
-  const [notifications] = useState(3); // Mock notification count
+  const [notifications, setNotifications] = useState(0); // Real notification count will be implemented
+
+  // TODO: Implement real notification system
+  useEffect(() => {
+    // Placeholder for future notification fetching
+    // This will be replaced with actual API call to get admin notifications
+    setNotifications(0);
+  }, []);
 
   const userInitials = user.name
     ? user.name
