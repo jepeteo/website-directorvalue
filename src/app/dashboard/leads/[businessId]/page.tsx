@@ -21,7 +21,9 @@ export default async function BusinessLeadsPage({ params }: BusinessPageProps) {
 
   try {
     const businesses = await getBusinessesByOwner(session.user.id);
-    const business = businesses.find((b: any) => b.id === params.businessId);
+    const business = businesses.find(
+      (b: { id: string }) => b.id === params.businessId
+    );
 
     if (!business) {
       notFound();

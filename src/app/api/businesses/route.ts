@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
 
     // Build where conditions
-    const where: any = {}
+    const where: Record<string, unknown> = {}
 
     // Only show active businesses for public API (unless status filter is specified)
     if (!status) {
@@ -107,9 +107,9 @@ export async function GET(request: NextRequest) {
     ])
 
     // Calculate average ratings
-    const businessesWithRatings = businesses.map((business: any) => {
+    const businessesWithRatings = businesses.map((business: { reviews: Array<{ rating: number }>; _count: { reviews: number } }) => {
       const avgRating = business.reviews.length > 0
-        ? business.reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / business.reviews.length
+        ? business.reviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / business.reviews.length
         : 0
 
       return {

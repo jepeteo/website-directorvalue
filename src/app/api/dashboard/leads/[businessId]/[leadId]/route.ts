@@ -106,7 +106,7 @@ export async function GET(
     }
 
     // Mark as viewed if it's new using raw SQL
-    const leadData = lead as any
+    const leadData = lead as { status: string; id: string; viewedAt?: Date }
     if (leadData.status === "NEW") {
       await prisma.$executeRaw`
         UPDATE "Lead" 

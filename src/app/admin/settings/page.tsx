@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   description: "System configuration and settings",
 };
 
+// Mark as dynamic since we're fetching data
+export const dynamic = "force-dynamic";
+
 async function getSettings() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";

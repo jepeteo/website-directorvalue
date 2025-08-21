@@ -39,25 +39,25 @@ export async function GET(
     // Calculate basic stats
     const stats = {
       total: leads.length,
-      new: leads.filter((lead: any) => lead.status === "NEW").length,
-      viewed: leads.filter((lead: any) => lead.status === "VIEWED").length,
-      contacted: leads.filter((lead: any) => lead.status === "CONTACTED").length,
-      qualified: leads.filter((lead: any) => lead.status === "QUALIFIED").length,
-      converted: leads.filter((lead: any) => lead.status === "CONVERTED").length,
-      closedLost: leads.filter((lead: any) => lead.status === "CLOSED_LOST").length,
+      new: leads.filter((lead: { status: string }) => lead.status === "NEW").length,
+      viewed: leads.filter((lead: { status: string }) => lead.status === "VIEWED").length,
+      contacted: leads.filter((lead: { status: string }) => lead.status === "CONTACTED").length,
+      qualified: leads.filter((lead: { status: string }) => lead.status === "QUALIFIED").length,
+      converted: leads.filter((lead: { status: string }) => lead.status === "CONVERTED").length,
+      closedLost: leads.filter((lead: { status: string }) => lead.status === "CLOSED_LOST").length,
       conversionRate: leads.length > 0 
-        ? Math.round((leads.filter((lead: any) => lead.status === "CONVERTED").length / leads.length) * 100)
+        ? Math.round((leads.filter((lead: { status: string }) => lead.status === "CONVERTED").length / leads.length) * 100)
         : 0,
     }
 
     // Group leads by status
     const leadsByStatus = {
-      new: leads.filter((lead: any) => lead.status === "NEW"),
-      viewed: leads.filter((lead: any) => lead.status === "VIEWED"),
-      contacted: leads.filter((lead: any) => lead.status === "CONTACTED"),
-      qualified: leads.filter((lead: any) => lead.status === "QUALIFIED"),
-      converted: leads.filter((lead: any) => lead.status === "CONVERTED"),
-      closedLost: leads.filter((lead: any) => lead.status === "CLOSED_LOST"),
+      new: leads.filter((lead: { status: string }) => lead.status === "NEW"),
+      viewed: leads.filter((lead: { status: string }) => lead.status === "VIEWED"),
+      contacted: leads.filter((lead: { status: string }) => lead.status === "CONTACTED"),
+      qualified: leads.filter((lead: { status: string }) => lead.status === "QUALIFIED"),
+      converted: leads.filter((lead: { status: string }) => lead.status === "CONVERTED"),
+      closedLost: leads.filter((lead: { status: string }) => lead.status === "CLOSED_LOST"),
     }
 
     // Recent activity for dashboard
