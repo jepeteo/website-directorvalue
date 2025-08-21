@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, LeadStatus, LeadPriority } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -30,8 +30,8 @@ async function main() {
       budget: "€5,000 - €10,000",
       timeline: "2-3 months",
       location: "Dublin, Ireland",
-      status: "NEW",
-      priority: "HIGH",
+      status: LeadStatus.NEW,
+      priority: LeadPriority.HIGH,
       source: "contact_form"
     },
     {
@@ -43,8 +43,8 @@ async function main() {
       budget: "€2,000 - €5,000",
       timeline: "ASAP",
       location: "Cork, Ireland",
-      status: "VIEWED",
-      priority: "URGENT",
+      status: LeadStatus.VIEWED,
+      priority: LeadPriority.URGENT,
       source: "vip_contact",
       viewedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
     },
@@ -57,8 +57,8 @@ async function main() {
       budget: "€10,000+",
       timeline: "3-6 months",
       location: "Galway, Ireland",
-      status: "CONTACTED",
-      priority: "MEDIUM",
+      status: LeadStatus.CONTACTED,
+      priority: LeadPriority.MEDIUM,
       source: "quick_quote",
       viewedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
       respondedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
@@ -70,8 +70,8 @@ async function main() {
       message: "I need a professional portfolio website. Something clean and modern to showcase my photography work.",
       budget: "€1,000 - €2,000",
       timeline: "1 month",
-      status: "QUALIFIED",
-      priority: "LOW",
+      status: LeadStatus.QUALIFIED,
+      priority: LeadPriority.LOW,
       source: "contact_form",
       viewedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
       respondedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
@@ -85,8 +85,8 @@ async function main() {
       budget: "€7,500",
       timeline: "Completed",
       location: "Limerick, Ireland",
-      status: "CONVERTED",
-      priority: "HIGH",
+      status: LeadStatus.CONVERTED,
+      priority: LeadPriority.HIGH,
       source: "vip_contact",
       viewedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
       respondedAt: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000), // 28 days ago
@@ -98,8 +98,8 @@ async function main() {
       message: "We're a non-profit organization looking for pro-bono or discounted web services. Unfortunately, our budget is very limited.",
       budget: "Under €500",
       timeline: "No rush",
-      status: "CLOSED_LOST",
-      priority: "LOW",
+      status: LeadStatus.CLOSED_LOST,
+      priority: LeadPriority.LOW,
       source: "contact_form",
       viewedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), // 14 days ago
       respondedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000) // 12 days ago
