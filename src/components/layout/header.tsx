@@ -34,12 +34,6 @@ export function Header() {
             >
               Pricing
             </Link>
-            <Link
-              href="/register"
-              className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-all duration-200"
-            >
-              List Business
-            </Link>
             <div className="ml-2">
               <UserMenu />
             </div>
