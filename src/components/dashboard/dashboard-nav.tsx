@@ -11,6 +11,7 @@ import {
   MessageSquare,
   PlusCircle,
   Home,
+  Users,
 } from "lucide-react";
 
 const navigationItems = [
@@ -28,6 +29,11 @@ const navigationItems = [
     name: "Add Business",
     href: "/dashboard/businesses/new",
     icon: PlusCircle,
+  },
+  {
+    name: "Leads",
+    href: "/dashboard/leads",
+    icon: Users,
   },
   {
     name: "Analytics",

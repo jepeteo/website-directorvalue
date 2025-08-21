@@ -35,6 +35,7 @@ import {
   Plus,
   Eye,
   TrendingUp,
+  Users,
 } from "lucide-react";
 
 export default async function DashboardPage() {
@@ -226,6 +227,17 @@ export default async function DashboardPage() {
                   <Link href="/dashboard/businesses/new">
                     <Plus className="h-4 w-4 mr-2" />
                     Add New Business
+                  </Link>
+                </Button>
+
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full justify-start"
+                >
+                  <Link href="/dashboard/leads">
+                    <Users className="h-4 w-4 mr-2" />
+                    Manage Leads
                   </Link>
                 </Button>
 
