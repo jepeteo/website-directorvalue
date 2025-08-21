@@ -164,6 +164,50 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const data = businessSchema.parse(body)
 
+    // Build data object conditionally to handle exactOptionalPropertyTypes
+    const createData: {
+      status: "PENDING";
+      name: string;
+      slug: string;
+      description: string;
+      addressLine1: string;
+      city: string;
+      country: string;
+      email: string;
+      categoryId: string;
+      planType: "FREE_TRIAL" | "BASIC" | "PRO" | "VIP";
+      ownerId: string;
+      state?: string;
+      postalCode?: string;
+      phone?: string;
+      website?: string;
+    } = {
+      status: "PENDING", // All new businesses need approval
+      name: data.name,
+      slug: data.slug,
+      description: data.description,
+      addressLine1: data.addressLine1,
+      city: data.city,
+      country: data.country,
+      email: data.email,
+      categoryId: data.categoryId,
+      planType: data.planType,
+      ownerId: data.ownerId,
+    }
+
+    if (data.state !== undefined) {
+      createData.state = data.state
+    }
+    if (data.postalCode !== undefined) {
+      createData.postalCode = data.postalCode
+    }
+    if (data.phone !== undefined) {
+      createData.phone = data.phone
+    }
+    if (data.website !== undefined) {
+      createData.website = data.website
+    }
+
     // Check if slug is unique
     const existingBusiness = await prisma.business.findUnique({
       where: { slug: data.slug },
@@ -178,10 +222,7 @@ export async function POST(request: NextRequest) {
 
     // Create business (status defaults to PENDING for approval)
     const business = await prisma.business.create({
-      data: {
-        ...data,
-        status: "PENDING", // All new businesses need approval
-      },
+      data: createData,
       include: {
         category: true,
         owner: {

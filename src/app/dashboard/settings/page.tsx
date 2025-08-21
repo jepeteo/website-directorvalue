@@ -40,7 +40,7 @@ async function getUserSettings(userId: string) {
             : user.role === "ADMIN"
             ? "Admin"
             : "User",
-        memberSince: user.createdAt.toISOString().split("T")[0],
+        memberSince: user.createdAt.toISOString().split("T")[0] || "Unknown",
       },
       notifications: {
         emailNotifications: true,
@@ -56,7 +56,8 @@ async function getUserSettings(userId: string) {
       },
       security: {
         twoFactorEnabled: false,
-        lastPasswordChange: user.updatedAt.toISOString().split("T")[0],
+        lastPasswordChange:
+          user.updatedAt.toISOString().split("T")[0] || "Unknown",
         activeSessions: Math.floor(Math.random() * 3) + 1, // Mock
       },
     };
@@ -71,7 +72,7 @@ async function getUserSettings(userId: string) {
         email: "",
         avatar: null,
         role: "User",
-        memberSince: new Date().toISOString().split("T")[0],
+        memberSince: new Date().toISOString().split("T")[0] || "Unknown",
       },
       notifications: {
         emailNotifications: true,
@@ -87,7 +88,7 @@ async function getUserSettings(userId: string) {
       },
       security: {
         twoFactorEnabled: false,
-        lastPasswordChange: new Date().toISOString().split("T")[0],
+        lastPasswordChange: new Date().toISOString().split("T")[0] || "Unknown",
         activeSessions: 1,
       },
     };

@@ -166,70 +166,74 @@ export default async function DashboardPage() {
           </Card>
         ) : businesses.length === 1 ? (
           // Single business - show detailed analytics
-          <Tabs defaultValue="analytics" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <TabsList>
-                <TabsTrigger value="analytics">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Analytics
-                </TabsTrigger>
-                <TabsTrigger value="reviews">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Reviews
-                </TabsTrigger>
-                <TabsTrigger value="settings">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </TabsTrigger>
-              </TabsList>
+          selectedBusiness ? (
+            <Tabs defaultValue="analytics" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <TabsList>
+                  <TabsTrigger value="analytics">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Analytics
+                  </TabsTrigger>
+                  <TabsTrigger value="reviews">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Reviews
+                  </TabsTrigger>
+                  <TabsTrigger value="settings">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Settings
+                  </TabsTrigger>
+                </TabsList>
 
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">{selectedBusiness.planType}</Badge>
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={`/l/${selectedBusiness.slug}`} target="_blank">
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Live
-                  </Link>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">{selectedBusiness.planType}</Badge>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/l/${selectedBusiness.slug}`} target="_blank">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Live
+                    </Link>
+                  </Button>
+                </div>
               </div>
-            </div>
 
-            <TabsContent value="analytics">
-              <BusinessAnalytics
-                businessId={selectedBusiness.id}
-                businessName={selectedBusiness.name}
-              />
-            </TabsContent>
+              <TabsContent value="analytics">
+                <BusinessAnalytics
+                  businessId={selectedBusiness.id}
+                  businessName={selectedBusiness.name}
+                />
+              </TabsContent>
 
-            <TabsContent value="reviews">
-              <BusinessReviews businessId={selectedBusiness.id} />
-            </TabsContent>
+              <TabsContent value="reviews">
+                <BusinessReviews businessId={selectedBusiness.id} />
+              </TabsContent>
 
-            <TabsContent value="settings">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Business Settings</CardTitle>
-                  <CardDescription>
-                    Manage your business information and preferences
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <Button asChild>
-                      <Link
-                        href={`/dashboard/businesses/${selectedBusiness.id}/edit`}
-                      >
-                        Edit Business Information
-                      </Link>
-                    </Button>
-                    <Button variant="outline" asChild>
-                      <Link href="/pricing">Upgrade Plan</Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="settings">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Business Settings</CardTitle>
+                    <CardDescription>
+                      Manage your business information and preferences
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <Button asChild>
+                        <Link
+                          href={`/dashboard/businesses/${selectedBusiness.id}/edit`}
+                        >
+                          Edit Business Information
+                        </Link>
+                      </Button>
+                      <Button variant="outline" asChild>
+                        <Link href="/pricing">Upgrade Plan</Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <div>Business not found</div>
+          )
         ) : (
           // Multiple businesses - show overview list
           <Card>

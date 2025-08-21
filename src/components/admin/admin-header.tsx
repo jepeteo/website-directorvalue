@@ -53,7 +53,7 @@ export function AdminHeader({ user }: AdminHeaderProps) {
         .join("")
         .toUpperCase()
     : user.email
-    ? user.email[0].toUpperCase()
+    ? user.email[0]?.toUpperCase() || "A"
     : "A";
 
   return (

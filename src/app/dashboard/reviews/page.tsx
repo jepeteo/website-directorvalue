@@ -36,22 +36,41 @@ async function getReviewsData(userId: string) {
 
     // Flatten all reviews from all businesses
     const allReviews = businesses.flatMap((business) =>
-      business.reviews.map((review) => ({
-        id: review.id,
-        businessName: business.name,
-        reviewerName: review.user.name || "Anonymous",
-        rating: review.rating,
-        comment: review.content || "",
-        date: review.createdAt.toISOString().split("T")[0],
-        status: (review.isHidden ? "hidden" : "published") as
-          | "hidden"
-          | "published"
-          | "pending",
-        helpful: Math.floor(Math.random() * 20), // Mock helpful count
-        reported: false, // Mock reported status
-        hasReply: !!review.ownerResponse,
-        reply: review.ownerResponse?.content || undefined,
-      }))
+      business.reviews.map((review) => {
+        const reviewData: {
+          id: string;
+          businessName: string;
+          reviewerName: string;
+          rating: number;
+          comment: string;
+          date: string;
+          status: "hidden" | "published" | "pending";
+          helpful: number;
+          reported: boolean;
+          hasReply: boolean;
+          reply?: string;
+        } = {
+          id: review.id,
+          businessName: business.name,
+          reviewerName: review.user.name || "Anonymous",
+          rating: review.rating,
+          comment: review.content || "",
+          date: review.createdAt.toISOString().split("T")[0] || "Unknown",
+          status: (review.isHidden ? "hidden" : "published") as
+            | "hidden"
+            | "published"
+            | "pending",
+          helpful: Math.floor(Math.random() * 20), // Mock helpful count
+          reported: false, // Mock reported status
+          hasReply: !!review.ownerResponse,
+        };
+
+        if (review.ownerResponse?.content) {
+          reviewData.reply = review.ownerResponse.content;
+        }
+
+        return reviewData;
+      })
     );
 
     const totalReviews = allReviews.length;

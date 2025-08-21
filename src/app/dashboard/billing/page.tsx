@@ -98,7 +98,7 @@ async function getBillingData(userId: string) {
       primaryBusiness?.planType !== "FREE_TRIAL"
         ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
             .toISOString()
-            .split("T")[0]
+            .split("T")[0] || null
         : null;
 
     // Mock payment method (in production, this would come from Stripe)
@@ -118,9 +118,12 @@ async function getBillingData(userId: string) {
         ? [
             {
               id: "inv_001",
-              date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-                .toISOString()
-                .split("T")[0],
+              date:
+                new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+                  .toISOString()
+                  .split("T")[0] ||
+                new Date().toISOString().split("T")[0] ||
+                "Unknown",
               amount: currentPlan.price,
               currency: currentPlan.currency,
               status: "paid",
@@ -128,9 +131,12 @@ async function getBillingData(userId: string) {
             },
             {
               id: "inv_002",
-              date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
-                .toISOString()
-                .split("T")[0],
+              date:
+                new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
+                  .toISOString()
+                  .split("T")[0] ||
+                new Date().toISOString().split("T")[0] ||
+                "Unknown",
               amount: currentPlan.price,
               currency: currentPlan.currency,
               status: "paid",
@@ -175,9 +181,10 @@ async function getBillingData(userId: string) {
         currency: "EUR",
         interval: "month",
         status: "trial",
-        trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split("T")[0],
+        trialEndsAt:
+          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split("T")[0] || null,
         nextBillDate: null,
         features: [
           "30-day free trial",

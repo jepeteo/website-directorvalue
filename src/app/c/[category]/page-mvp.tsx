@@ -87,18 +87,42 @@ export default async function CategoryPage({
         {paginatedBusinesses.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-              {paginatedBusinesses.map((business) => (
-                <BusinessCard
-                  key={business.id}
-                  business={{
-                    ...business,
-                    logo: business.logo,
-                    category: categoryData.name,
-                    rating: business.averageRating,
-                    reviewCount: business.reviewCount,
-                  }}
-                />
-              ))}
+              {paginatedBusinesses.map((business) => {
+                const businessData: {
+                  id: string;
+                  name: string;
+                  slug: string;
+                  description?: string | null;
+                  logo?: string | null;
+                  category?: string | { name: string } | null;
+                  city?: string | null;
+                  country?: string | null;
+                  planType: "FREE_TRIAL" | "BASIC" | "PRO" | "VIP";
+                  rating?: number;
+                  reviewCount?: number;
+                } = {
+                  id: business.id,
+                  name: business.name,
+                  slug: business.slug,
+                  planType: business.planType,
+                  category: categoryData.name,
+                  description: business.description || null,
+                  logo: business.logo || null,
+                  city: business.city || null,
+                  country: business.country || null,
+                };
+
+                if (business.averageRating !== undefined) {
+                  businessData.rating = business.averageRating;
+                }
+                if (business.reviewCount !== undefined) {
+                  businessData.reviewCount = business.reviewCount;
+                }
+
+                return (
+                  <BusinessCard key={business.id} business={businessData} />
+                );
+              })}
             </div>
 
             {/* Pagination */}

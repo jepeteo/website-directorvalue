@@ -219,7 +219,7 @@ export async function UserTable({
         .join("")
         .toUpperCase();
     }
-    return email[0].toUpperCase();
+    return email[0]?.toUpperCase() || "U";
   };
 
   return (

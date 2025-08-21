@@ -74,6 +74,9 @@ export default async function LeadsPage() {
     // If only one business, show leads directly
     if (businesses.length === 1) {
       const business = businesses[0];
+      if (!business) {
+        return <div>Business not found</div>;
+      }
       return (
         <div className="space-y-6">
           <div className="flex items-center justify-between">

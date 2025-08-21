@@ -56,16 +56,20 @@ export default async function AdminEditBusinessPage({
             businessId={id}
             initialData={{
               name: business.name,
-              description: business.description || undefined,
-              email: business.email || undefined,
-              phone: business.phone || undefined,
-              website: business.website || undefined,
-              addressLine1: business.addressLine1 || undefined,
-              city: business.city || undefined,
-              state: business.state || undefined,
-              postalCode: business.postalCode || undefined,
-              country: business.country || undefined,
-              categoryId: business.categoryId || undefined,
+              ...(business.description && {
+                description: business.description,
+              }),
+              ...(business.email && { email: business.email }),
+              ...(business.phone && { phone: business.phone }),
+              ...(business.website && { website: business.website }),
+              ...(business.addressLine1 && {
+                addressLine1: business.addressLine1,
+              }),
+              ...(business.city && { city: business.city }),
+              ...(business.state && { state: business.state }),
+              ...(business.postalCode && { postalCode: business.postalCode }),
+              ...(business.country && { country: business.country }),
+              ...(business.categoryId && { categoryId: business.categoryId }),
             }}
           />
         </Suspense>

@@ -29,10 +29,23 @@ export async function PATCH(
     const body = await request.json()
     const validatedData = updateReviewSchema.parse(body)
 
+    // Build data object conditionally to handle exactOptionalPropertyTypes
+    const updateData: {
+      isHidden?: boolean;
+      adminNote?: string;
+    } = {}
+
+    if (validatedData.isHidden !== undefined) {
+      updateData.isHidden = validatedData.isHidden
+    }
+    if (validatedData.adminNote !== undefined) {
+      updateData.adminNote = validatedData.adminNote
+    }
+
     // Update the review
     const updatedReview = await prisma.review.update({
       where: { id },
-      data: validatedData,
+      data: updateData,
       include: {
         business: {
           select: {

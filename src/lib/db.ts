@@ -228,8 +228,8 @@ export async function createReview({
       businessId,
       userId,
       rating,
-      title,
-      content,
+      ...(title && { title }),
+      ...(content && { content }),
     },
     include: {
       user: {

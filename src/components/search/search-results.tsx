@@ -323,17 +323,33 @@ export function SearchResults() {
                       (cat) => cat.id === business.categoryId
                     );
 
+                    const businessData: {
+                      id: string;
+                      name: string;
+                      slug: string;
+                      description?: string | null;
+                      logo?: string | null;
+                      category?: string | { name: string } | null;
+                      city?: string | null;
+                      country?: string | null;
+                      planType: "FREE_TRIAL" | "BASIC" | "PRO" | "VIP";
+                      rating?: number;
+                      reviewCount?: number;
+                    } = {
+                      ...business,
+                      logo: business.logo || null,
+                      category: businessCategory?.name || null,
+                    };
+
+                    if (business.averageRating !== undefined) {
+                      businessData.rating = business.averageRating;
+                    }
+                    if (business.reviewCount !== undefined) {
+                      businessData.reviewCount = business.reviewCount;
+                    }
+
                     return (
-                      <BusinessCard
-                        key={business.id}
-                        business={{
-                          ...business,
-                          logo: business.logo,
-                          category: businessCategory?.name,
-                          rating: business.averageRating,
-                          reviewCount: business.reviewCount,
-                        }}
-                      />
+                      <BusinessCard key={business.id} business={businessData} />
                     );
                   })}
                 </div>

@@ -223,7 +223,7 @@ export async function ReviewTable({
         .join("")
         .toUpperCase();
     }
-    return email[0].toUpperCase();
+    return email[0]?.toUpperCase() || "U";
   };
 
   const truncateComment = (comment: string, maxLength: number = 100) => {

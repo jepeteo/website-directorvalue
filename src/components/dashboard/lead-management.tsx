@@ -132,18 +132,16 @@ export function LeadManagement({
 
       if (response.ok) {
         setLeads(
-          leads.map((lead) =>
-            lead.id === leadId
-              ? {
-                  ...lead,
-                  status: newStatus,
-                  viewedAt:
-                    newStatus === "VIEWED"
-                      ? new Date().toISOString()
-                      : lead.viewedAt,
-                }
-              : lead
-          )
+          leads.map((lead) => {
+            if (lead.id === leadId) {
+              const updatedLead = { ...lead, status: newStatus };
+              if (newStatus === "VIEWED") {
+                updatedLead.viewedAt = new Date().toISOString();
+              }
+              return updatedLead;
+            }
+            return lead;
+          })
         );
         toast({
           title: "Success",

@@ -22,13 +22,28 @@ export async function GET(request: NextRequest) {
         const page = parseInt(searchParams.get('page') || '1')
         const limit = parseInt(searchParams.get('limit') || '10')
 
-        const result = await getBusinesses({
-          query,
-          category,
-          location,
+        const businessOptions: {
+          category?: string;
+          location?: string;
+          query?: string;
+          page?: number;
+          limit?: number;
+        } = {
           page,
           limit,
-        })
+        }
+
+        if (query !== undefined) {
+          businessOptions.query = query
+        }
+        if (category !== undefined) {
+          businessOptions.category = category
+        }
+        if (location !== undefined) {
+          businessOptions.location = location
+        }
+
+        const result = await getBusinesses(businessOptions)
         
         return NextResponse.json(result)
       

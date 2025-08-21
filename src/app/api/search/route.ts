@@ -24,14 +24,30 @@ export async function GET(request: NextRequest) {
     })
 
     // Use real database for Phase 2
-    const result = await searchBusinesses({
-      query: params.query,
-      categoryId: params.categoryId,
-      location: params.location,
+    const searchOptions: {
+      query?: string;
+      categoryId?: string;
+      location?: string;
+      sortBy?: "rating" | "reviews" | "relevance" | "newest";
+      page?: number;
+      limit?: number;
+    } = {
       sortBy: params.sortBy,
       page: params.page,
       limit: params.limit,
-    });
+    }
+
+    if (params.query !== undefined) {
+      searchOptions.query = params.query
+    }
+    if (params.categoryId !== undefined) {
+      searchOptions.categoryId = params.categoryId
+    }
+    if (params.location !== undefined) {
+      searchOptions.location = params.location
+    }
+
+    const result = await searchBusinesses(searchOptions);
 
     // Get categories for filters
     const categories = await getCategories();

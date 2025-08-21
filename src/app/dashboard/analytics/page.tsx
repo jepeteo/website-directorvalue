@@ -103,7 +103,13 @@ async function getAnalyticsData(userId: string) {
     };
 
     // Generate recent activity with real review and lead data (last 7 days)
-    const recentActivity = [];
+    const recentActivity: Array<{
+      date: string;
+      views: number;
+      clicks: number;
+      reviews: number;
+      leads?: number;
+    }> = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
@@ -121,7 +127,7 @@ async function getAnalyticsData(userId: string) {
       }).length;
 
       recentActivity.push({
-        date: date.toISOString().split("T")[0],
+        date: date.toISOString().split("T")[0] || date.toDateString(),
         views: Math.floor(Math.random() * 80) + 20, // Mock
         clicks: Math.floor(Math.random() * 10) + 1, // Mock
         reviews: dailyReviews,
@@ -137,24 +143,40 @@ async function getAnalyticsData(userId: string) {
       averageRating: Number(averageRating.toFixed(2)),
       monthlyGrowth,
       recentActivity,
-      businesses: businesses.map((b) => ({
-        id: b.id,
-        name: b.name,
-        status: b.status,
-        planType: b.planType,
-        reviewCount: b.reviews.length,
-        leadCount: b.leads.length,
-        averageRating:
-          b.reviews.length > 0
-            ? Number(
-                (
-                  b.reviews.reduce((sum, r) => sum + r.rating, 0) /
-                  b.reviews.length
-                ).toFixed(2)
-              )
-            : 0,
-        memberSince: b.createdAt.toISOString().split("T")[0],
-      })),
+      businesses: businesses.map((b) => {
+        const businessData: {
+          id: string;
+          name: string;
+          status?: string;
+          planType?: string;
+          reviewCount: number;
+          leadCount?: number;
+          averageRating: number;
+          memberSince?: string;
+        } = {
+          id: b.id,
+          name: b.name,
+          reviewCount: b.reviews.length,
+          averageRating:
+            b.reviews.length > 0
+              ? Number(
+                  (
+                    b.reviews.reduce((sum, r) => sum + r.rating, 0) /
+                    b.reviews.length
+                  ).toFixed(2)
+                )
+              : 0,
+        };
+
+        if (b.status) businessData.status = b.status;
+        if (b.planType) businessData.planType = b.planType;
+        if (b.leads.length > 0) businessData.leadCount = b.leads.length;
+
+        const memberSinceDate = b.createdAt.toISOString().split("T")[0];
+        if (memberSinceDate) businessData.memberSince = memberSinceDate;
+
+        return businessData;
+      }),
     };
   } catch (error) {
     console.error("Error fetching analytics data:", error);
