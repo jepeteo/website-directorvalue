@@ -2,6 +2,106 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import ReviewsDashboard from "@/components/dashboard/reviews-dashboard";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Star, Search, MessageSquare } from "lucide-react";
+
+// Component for visitors to write reviews
+function VisitorReviewsPage() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Your Reviews</h1>
+        <p className="text-muted-foreground">
+          Write and manage reviews for businesses you&apos;ve visited
+        </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Search className="h-5 w-5" />
+              Find Businesses to Review
+            </CardTitle>
+            <CardDescription>
+              Search for businesses in your area and share your experience
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild className="w-full">
+              <Link href="/search">Browse Businesses</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Star className="h-5 w-5" />
+              Your Review History
+            </CardTitle>
+            <CardDescription>
+              View and manage reviews you&apos;ve written
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-4">
+              <MessageSquare className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">No reviews yet</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Why Write Reviews?</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="text-center">
+              <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">
+                <Star className="h-6 w-6 text-blue-600" />
+              </div>
+              <h3 className="font-medium mb-1">Help Others</h3>
+              <p className="text-sm text-muted-foreground">
+                Share your experience to help other customers make informed
+                decisions
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-green-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">
+                <MessageSquare className="h-6 w-6 text-green-600" />
+              </div>
+              <h3 className="font-medium mb-1">Give Feedback</h3>
+              <p className="text-sm text-muted-foreground">
+                Help businesses improve their services with constructive
+                feedback
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-purple-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">
+                <Search className="h-6 w-6 text-purple-600" />
+              </div>
+              <h3 className="font-medium mb-1">Build Community</h3>
+              <p className="text-sm text-muted-foreground">
+                Contribute to a trusted community of local business reviews
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 async function getReviewsData(userId: string) {
   try {
@@ -119,7 +219,25 @@ export default async function ReviewsPage() {
     redirect("/auth/signin");
   }
 
-  const reviewsData = await getReviewsData(session.user.id);
+  const userRole =
+    (
+      session.user as {
+        role?:
+          | "VISITOR"
+          | "BUSINESS_OWNER"
+          | "ADMIN"
+          | "MODERATOR"
+          | "FINANCE"
+          | "SUPPORT";
+      }
+    )?.role || "VISITOR";
 
+  // Different experiences based on user role
+  if (userRole === "VISITOR") {
+    return <VisitorReviewsPage />;
+  }
+
+  // Business owners and admins get the full review management dashboard
+  const reviewsData = await getReviewsData(session.user.id);
   return <ReviewsDashboard initialData={reviewsData} />;
 }

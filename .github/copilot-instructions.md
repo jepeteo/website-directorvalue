@@ -58,9 +58,9 @@ _(See PRD for full schema — copy to `prisma/schema.prisma`.)_
 
 ## Stripe Products
 
-- `plan_basic_monthly` (€5.99)
-- `plan_pro_monthly`
-- `plan_vip_monthly`
+- `plan_basic_monthly` (€5.99) - Single business, basic listing
+- `plan_pro_monthly` (€12.99) - Basic + Analytics + enhanced features
+- `plan_vip_monthly` (€19.99) - Pro + Leads + multiple businesses + priority
 - Trials: 30 days, auto deactivate if unpaid.
 
 ## Middleware & Policies

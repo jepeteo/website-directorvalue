@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import AnalyticsDashboard from "@/components/dashboard/analytics-dashboard";
+import { RequireProPlan } from "@/components/auth/role-guard";
 
 async function getAnalyticsData(userId: string) {
   try {
@@ -200,6 +201,14 @@ async function getAnalyticsData(userId: string) {
 }
 
 export default async function AnalyticsPage() {
+  return (
+    <RequireProPlan>
+      <AnalyticsPageContent />
+    </RequireProPlan>
+  );
+}
+
+async function AnalyticsPageContent() {
   const session = await auth();
 
   if (!session?.user?.id) {

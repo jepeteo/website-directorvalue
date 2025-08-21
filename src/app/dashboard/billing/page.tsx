@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import BillingDashboard from "@/components/dashboard/billing-dashboard";
+import { RequireBusinessOwner } from "@/components/auth/role-guard";
 
 async function getBillingData(userId: string) {
   try {
@@ -206,6 +207,14 @@ async function getBillingData(userId: string) {
 }
 
 export default async function BillingPage() {
+  return (
+    <RequireBusinessOwner>
+      <BillingPageContent />
+    </RequireBusinessOwner>
+  );
+}
+
+async function BillingPageContent() {
   const session = await auth();
 
   if (!session?.user?.id) {

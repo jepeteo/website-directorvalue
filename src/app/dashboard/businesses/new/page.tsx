@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { BusinessForm } from "@/components/business/business-form";
 import { getCategories } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
+import { RequireVipPlan } from "@/components/auth/role-guard";
 
 export default async function NewBusinessPage() {
   const session = await auth();
@@ -11,6 +13,27 @@ export default async function NewBusinessPage() {
     redirect("/auth/signin");
   }
 
+  // Check if user already has a business
+  const existingBusinessCount = await prisma.business.count({
+    where: {
+      ownerId: session.user.id,
+    },
+  });
+
+  // If user already has a business, require VIP plan for additional ones
+  if (existingBusinessCount > 0) {
+    return (
+      <RequireVipPlan>
+        <NewBusinessContent userId={session.user.id} />
+      </RequireVipPlan>
+    );
+  }
+
+  // First business - allow all business owners
+  return <NewBusinessContent userId={session.user.id} />;
+}
+
+async function NewBusinessContent({ userId }: { userId: string }) {
   const categories = await getCategories();
 
   return (
@@ -25,11 +48,7 @@ export default async function NewBusinessPage() {
       </div>
 
       <Suspense fallback={<div>Loading...</div>}>
-        <BusinessForm
-          categories={categories}
-          userId={session.user.id}
-          mode="create"
-        />
+        <BusinessForm categories={categories} userId={userId} mode="create" />
       </Suspense>
     </div>
   );

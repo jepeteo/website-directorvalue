@@ -19,10 +19,10 @@
 - **Listings:** ✅ Global, all industries; categories, tags, regions.
 - **Plans:** ✅ 
   - **Free Trial (30 days):** auto-expires → listing deactivated.  
-  - **Basic (€5.99/mo):** name, address, phone, email.  
-  - **Pro:** Basic + services, logo, Google Map, working hours.  
-  - **VIP:** Pro + top placement in category, hide email, contact-form relay.
-- **Self-serve capability:** ✅ **VIP** can self-register/manage. Others contact us; admin creates/edits.
+  - **Basic (€5.99/mo):** name, address, phone, email + limited dashboard access.  
+  - **Pro (€12.99/mo):** Basic + services, logo, Google Map, working hours + Analytics dashboard.  
+  - **VIP (€19.99/mo):** Pro + top placement in category, hide email, contact-form relay + Lead management + Multiple businesses.
+- **Self-serve capability:** ✅ All **business owners** get dashboard access. **VIP** can self-register/manage multiple businesses. Basic/Pro limited to single business; contact us for additional support.
 - **Payments:** 🔄 Stripe subscriptions + webhooks (trial, renewals, dunning, cancel) - *In Progress*
 - **Search:** ✅ by name, category, location, filters (price range, tags, open now, rating).
 - **Reviews:** ✅ Open posting; abuse-report mechanism; soft-delete + audit log.
@@ -73,8 +73,8 @@
 *(see full conversation for schema)*
 
 ## 7) Key Flows
-- **VIP self-serve onboarding:** create account → create business → choose VIP plan → 30d trial → Stripe → auto-approve & publish → post-trial billing or deactivate.  
-- **Basic/Pro onboarding:** contact us → CRM lead → admin creates draft → Stripe link → on paid, publish.  
+- **Basic/Pro self-serve onboarding:** create account → create business → choose Basic/Pro plan → 30d trial → Stripe → auto-approve & publish → post-trial billing or deactivate. Limited to 1 business; Analytics for Pro+.
+- **VIP self-serve onboarding:** create account → create business → choose VIP plan → 30d trial → Stripe → auto-approve & publish → post-trial billing or deactivate. Multiple businesses + Lead management + Analytics.  
 - **Review posting:** open form → Turnstile → Zod validate → publish immediately → report-abuse available.  
 - **Abuse handling:** adds to queue → admin can hide content (soft delete) → audit trail.  
 - **VIP contact privacy:** hide email → contact form sends via Resend; store lead; throttle + spam checks.
@@ -84,7 +84,11 @@
 - **Sort:** relevance, rating, most reviews, newest, **VIP boost** within category.
 
 ## 9) Pricing & Billing
-- Stripe products for **Basic/Pro/VIP** + trial logic (30 days).
+- Stripe products for **Basic (€5.99)/Pro (€12.99)/VIP (€19.99)** + trial logic (30 days).
+- **Feature Matrix:**
+  - **Basic:** Single business, basic listing, limited dashboard
+  - **Pro:** Basic + Analytics, enhanced listing features  
+  - **VIP:** Pro + Lead management, multiple businesses, priority placement
 
 ## 10) Admin
 - CRUD for taxonomy, businesses, users, reviews.  

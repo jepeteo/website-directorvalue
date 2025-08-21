@@ -4,11 +4,36 @@ import { auth } from "@/lib/auth";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
+import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "Dashboard - Director Value",
   description: "Manage your business listings on Director Value",
 };
+
+async function getUserPlan(
+  userId: string
+): Promise<"FREE_TRIAL" | "BASIC" | "PRO" | "VIP"> {
+  try {
+    // Get user's primary business plan
+    const business = await prisma.business.findFirst({
+      where: {
+        ownerId: userId,
+      },
+      select: {
+        planType: true,
+      },
+    });
+
+    return (
+      (business?.planType as "FREE_TRIAL" | "BASIC" | "PRO" | "VIP") ||
+      "FREE_TRIAL"
+    );
+  } catch (error) {
+    console.error("Error fetching user plan:", error);
+    return "FREE_TRIAL";
+  }
+}
 
 export default async function DashboardLayout({
   children,
@@ -30,7 +55,7 @@ export default async function DashboardLayout({
     if (!isDevelopment) {
       redirect("/auth/signin");
     }
-    // In development, show warning and continue
+    // In development, show warning and continue with default values
     return (
       <div className="min-h-screen bg-white">
         <Header />
@@ -49,7 +74,7 @@ export default async function DashboardLayout({
             <aside className="w-64 flex-shrink-0">
               <div className="bg-muted/20 rounded-lg p-4">
                 <h2 className="text-lg font-semibold mb-4">Dashboard</h2>
-                <DashboardNav />
+                <DashboardNav userRole="VISITOR" userPlan="FREE_TRIAL" />
               </div>
             </aside>
             <main className="flex-1">{children}</main>
@@ -60,6 +85,24 @@ export default async function DashboardLayout({
     );
   }
 
+  // Get user role and plan
+  const userRole =
+    (
+      session.user as {
+        role?:
+          | "VISITOR"
+          | "BUSINESS_OWNER"
+          | "ADMIN"
+          | "MODERATOR"
+          | "FINANCE"
+          | "SUPPORT";
+      }
+    )?.role || "VISITOR";
+  const userPlan =
+    userRole === "BUSINESS_OWNER"
+      ? await getUserPlan(session.user.id!)
+      : "FREE_TRIAL";
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -68,7 +111,7 @@ export default async function DashboardLayout({
           <aside className="w-64 flex-shrink-0">
             <div className="bg-muted/20 rounded-lg p-4">
               <h2 className="text-lg font-semibold mb-4">Dashboard</h2>
-              <DashboardNav />
+              <DashboardNav userRole={userRole} userPlan={userPlan} />
             </div>
           </aside>
           <main className="flex-1">{children}</main>

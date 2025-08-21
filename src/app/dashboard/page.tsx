@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 
 interface BusinessWithRating {
   id: string;
@@ -36,14 +37,264 @@ import {
   Eye,
   TrendingUp,
   Users,
+  Crown,
+  Star,
+  Shield,
 } from "lucide-react";
+
+// Component for Visitor Dashboard
+function VisitorDashboard() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Welcome to Director Value
+          </h1>
+          <p className="text-muted-foreground">
+            Start by writing reviews or upgrade to become a business owner
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Write Reviews Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Star className="h-5 w-5" />
+              Write Reviews
+            </CardTitle>
+            <CardDescription>
+              Help other customers by sharing your experiences
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Share your honest reviews about businesses you&apos;ve visited
+                or used.
+              </p>
+              <Button asChild className="w-full">
+                <Link href="/search">Find Businesses to Review</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Upgrade Card */}
+        <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-amber-900">
+              <Crown className="h-5 w-5" />
+              Become a Business Owner
+            </CardTitle>
+            <CardDescription className="text-amber-700">
+              List your business and start getting customers
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <ul className="text-sm space-y-2 text-amber-800">
+                <li>• List your business</li>
+                <li>• Get customer reviews</li>
+                <li>• Manage inquiries</li>
+                <li>• Access analytics</li>
+              </ul>
+              <Button
+                asChild
+                className="w-full bg-amber-600 hover:bg-amber-700"
+              >
+                <Link href="/pricing">View Plans & Pricing</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Reviews Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Recent Reviews</CardTitle>
+          <CardDescription>
+            Reviews you&apos;ve written recently
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">No reviews yet</p>
+            <Button asChild className="mt-4">
+              <Link href="/search">Write Your First Review</Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Component for Admin Dashboard
+async function AdminDashboard() {
+  // Get admin stats
+  const [totalUsers, totalBusinesses, pendingReviews] = await Promise.all([
+    prisma.user.count(),
+    prisma.business.count(),
+    prisma.review.count({ where: { isHidden: false } }),
+  ]);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+          <p className="text-muted-foreground">
+            System overview and management tools
+          </p>
+        </div>
+        <Button asChild>
+          <Link href="/admin">
+            <Shield className="h-4 w-4 mr-2" />
+            Admin Panel
+          </Link>
+        </Button>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalUsers}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Businesses
+            </CardTitle>
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalBusinesses}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Active Reviews
+            </CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{pendingReviews}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button asChild variant="outline" className="w-full justify-start">
+              <Link href="/admin/businesses">
+                <Building2 className="h-4 w-4 mr-2" />
+                Manage Businesses
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full justify-start">
+              <Link href="/admin/users">
+                <Users className="h-4 w-4 mr-2" />
+                Manage Users
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full justify-start">
+              <Link href="/admin/reviews">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Review Management
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>System Health</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Database</span>
+                <Badge
+                  variant="secondary"
+                  className="bg-green-100 text-green-800"
+                >
+                  Healthy
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Email Service</span>
+                <Badge
+                  variant="secondary"
+                  className="bg-green-100 text-green-800"
+                >
+                  Active
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Payment System</span>
+                <Badge
+                  variant="secondary"
+                  className="bg-green-100 text-green-800"
+                >
+                  Connected
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
 
 export default async function DashboardPage() {
   const session = await auth();
 
   // For development, use a mock user ID
   const userId = session?.user?.id || "mock-user-1";
+  const userRole =
+    (
+      session?.user as {
+        role?:
+          | "VISITOR"
+          | "BUSINESS_OWNER"
+          | "ADMIN"
+          | "MODERATOR"
+          | "FINANCE"
+          | "SUPPORT";
+      }
+    )?.role || "VISITOR";
 
+  // Route based on user role
+  if (
+    userRole === "ADMIN" ||
+    userRole === "MODERATOR" ||
+    userRole === "FINANCE" ||
+    userRole === "SUPPORT"
+  ) {
+    return <AdminDashboard />;
+  }
+
+  if (userRole === "VISITOR") {
+    return <VisitorDashboard />;
+  }
+
+  // Business Owner Dashboard (existing logic)
   try {
     const [stats, businesses] = await Promise.all([
       getOwnerDashboardStats(userId),

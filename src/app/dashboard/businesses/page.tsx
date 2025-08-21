@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Building2, Plus, Star, MessageSquare, Eye, Edit } from "lucide-react";
+import { RequireBusinessOwner } from "@/components/auth/role-guard";
 
 interface BusinessData {
   id: string;
@@ -31,6 +32,14 @@ interface BusinessData {
 }
 
 export default async function BusinessesPage() {
+  return (
+    <RequireBusinessOwner>
+      <BusinessesPageContent />
+    </RequireBusinessOwner>
+  );
+}
+
+async function BusinessesPageContent() {
   const session = await auth();
 
   // For development, use a mock user ID

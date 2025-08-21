@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Plus, Building2 } from "lucide-react";
+import { RequireVipPlan } from "@/components/auth/role-guard";
 
 interface BusinessOption {
   id: string;
@@ -23,6 +24,14 @@ interface BusinessOption {
 }
 
 export default async function LeadsPage() {
+  return (
+    <RequireVipPlan>
+      <LeadsPageContent />
+    </RequireVipPlan>
+  );
+}
+
+async function LeadsPageContent() {
   const session = await auth();
 
   if (!session?.user?.id) {
