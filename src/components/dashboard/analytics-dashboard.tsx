@@ -150,8 +150,21 @@ export default function AnalyticsDashboard({
             <Eye className="h-8 w-8 text-blue-500" />
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-            <span className="text-green-500">+{data.monthlyGrowth.views}%</span>
+            {data.monthlyGrowth.views >= 0 ? (
+              <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+            ) : (
+              <TrendingUp className="h-4 w-4 text-red-500 mr-1 rotate-180" />
+            )}
+            <span
+              className={
+                data.monthlyGrowth.views >= 0
+                  ? "text-green-500"
+                  : "text-red-500"
+              }
+            >
+              {data.monthlyGrowth.views >= 0 ? "+" : ""}
+              {data.monthlyGrowth.views}%
+            </span>
             <span className="text-muted-foreground ml-2">from last month</span>
           </div>
         </div>
@@ -176,9 +189,20 @@ export default function AnalyticsDashboard({
             <BarChart3 className="h-8 w-8 text-green-500" />
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-            <span className="text-green-500">
-              +{data.monthlyGrowth.clicks}%
+            {data.monthlyGrowth.clicks >= 0 ? (
+              <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+            ) : (
+              <TrendingUp className="h-4 w-4 text-red-500 mr-1 rotate-180" />
+            )}
+            <span
+              className={
+                data.monthlyGrowth.clicks >= 0
+                  ? "text-green-500"
+                  : "text-red-500"
+              }
+            >
+              {data.monthlyGrowth.clicks >= 0 ? "+" : ""}
+              {data.monthlyGrowth.clicks}%
             </span>
             <span className="text-muted-foreground ml-2">from last month</span>
           </div>
@@ -204,15 +228,26 @@ export default function AnalyticsDashboard({
             <MessageSquare className="h-8 w-8 text-purple-500" />
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-            <span className="text-green-500">
-              +{data.monthlyGrowth.reviews}%
+            {data.monthlyGrowth.reviews >= 0 ? (
+              <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+            ) : (
+              <TrendingUp className="h-4 w-4 text-red-500 mr-1 rotate-180" />
+            )}
+            <span
+              className={
+                data.monthlyGrowth.reviews >= 0
+                  ? "text-green-500"
+                  : "text-red-500"
+              }
+            >
+              {data.monthlyGrowth.reviews >= 0 ? "+" : ""}
+              {data.monthlyGrowth.reviews}%
             </span>
             <span className="text-muted-foreground ml-2">from last month</span>
           </div>
         </div>
 
-        <div 
+        <div
           className="bg-card rounded-lg border p-6 cursor-pointer transition-all hover:shadow-md"
           onClick={() => setSelectedMetric("leads")}
         >
@@ -222,15 +257,26 @@ export default function AnalyticsDashboard({
                 Total Leads
               </p>
               <p className="text-2xl font-bold">
-                {isLoading ? "..." : (data.totalLeads || 0)}
+                {isLoading ? "..." : data.totalLeads || 0}
               </p>
             </div>
             <Users className="h-8 w-8 text-orange-500" />
           </div>
           <div className="mt-4 flex items-center text-sm">
-            <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-            <span className="text-green-500">
-              +{data.monthlyGrowth.leads || 0}%
+            {(data.monthlyGrowth.leads || 0) >= 0 ? (
+              <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+            ) : (
+              <TrendingUp className="h-4 w-4 text-red-500 mr-1 rotate-180" />
+            )}
+            <span
+              className={
+                (data.monthlyGrowth.leads || 0) >= 0
+                  ? "text-green-500"
+                  : "text-red-500"
+              }
+            >
+              {(data.monthlyGrowth.leads || 0) >= 0 ? "+" : ""}
+              {data.monthlyGrowth.leads || 0}%
             </span>
             <span className="text-muted-foreground ml-2">from last month</span>
           </div>
@@ -394,7 +440,10 @@ export default function AnalyticsDashboard({
           <h2 className="text-xl font-semibold mb-6">Business Performance</h2>
           <div className="space-y-4">
             {data.businesses.map((business) => (
-              <div key={business.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+              <div
+                key={business.id}
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+              >
                 <div className="flex-1">
                   <h3 className="font-medium">{business.name}</h3>
                   <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
@@ -414,10 +463,14 @@ export default function AnalyticsDashboard({
                 <div className="text-right">
                   {business.memberSince && (
                     <p className="text-sm text-muted-foreground">
-                      Since {new Date(business.memberSince).toLocaleDateString("en-US", { 
-                        year: "numeric", 
-                        month: "short" 
-                      })}
+                      Since{" "}
+                      {new Date(business.memberSince).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                        }
+                      )}
                     </p>
                   )}
                 </div>

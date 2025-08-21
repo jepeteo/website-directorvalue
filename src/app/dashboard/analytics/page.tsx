@@ -56,35 +56,50 @@ async function getAnalyticsData(userId: string) {
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
 
-    const recentReviews = allReviews.filter(r => new Date(r.createdAt) >= thirtyDaysAgo).length;
-    const previousReviews = allReviews.filter(r => 
-      new Date(r.createdAt) >= sixtyDaysAgo && new Date(r.createdAt) < thirtyDaysAgo
+    const recentReviews = allReviews.filter(
+      (r) => new Date(r.createdAt) >= thirtyDaysAgo
+    ).length;
+    const previousReviews = allReviews.filter(
+      (r) =>
+        new Date(r.createdAt) >= sixtyDaysAgo &&
+        new Date(r.createdAt) < thirtyDaysAgo
     ).length;
 
-    const recentLeads = allLeads.filter(l => new Date(l.createdAt) >= thirtyDaysAgo).length;
-    const previousLeads = allLeads.filter(l => 
-      new Date(l.createdAt) >= sixtyDaysAgo && new Date(l.createdAt) < thirtyDaysAgo
+    const recentLeads = allLeads.filter(
+      (l) => new Date(l.createdAt) >= thirtyDaysAgo
+    ).length;
+    const previousLeads = allLeads.filter(
+      (l) =>
+        new Date(l.createdAt) >= sixtyDaysAgo &&
+        new Date(l.createdAt) < thirtyDaysAgo
     ).length;
 
     // Calculate growth percentages
-    const reviewsGrowth = previousReviews > 0 
-      ? ((recentReviews - previousReviews) / previousReviews) * 100
-      : recentReviews > 0 ? 100 : 0;
+    const reviewsGrowth =
+      previousReviews > 0
+        ? ((recentReviews - previousReviews) / previousReviews) * 100
+        : recentReviews > 0
+        ? 100
+        : 0;
 
-    const leadsGrowth = previousLeads > 0 
-      ? ((recentLeads - previousLeads) / previousLeads) * 100
-      : recentLeads > 0 ? 100 : 0;
+    const leadsGrowth =
+      previousLeads > 0
+        ? ((recentLeads - previousLeads) / previousLeads) * 100
+        : recentLeads > 0
+        ? 100
+        : 0;
 
     // Estimate views and clicks based on business activity (more realistic than random)
     const baseViews = Math.max(totalReviews * 50, totalLeads * 20, 100); // Reviews and leads indicate visibility
     const totalViews = baseViews + Math.floor(Math.random() * 500);
-    const totalClicks = Math.floor(totalViews * 0.05) + Math.floor(Math.random() * 20); // ~5% CTR
+    const totalClicks =
+      Math.floor(totalViews * 0.05) + Math.floor(Math.random() * 20); // ~5% CTR
 
     const monthlyGrowth = {
-      views: Math.random() * 20 - 5, // Still mock as we don't track views yet
-      clicks: Math.random() * 15 - 2, // Still mock as we don't track clicks yet
-      reviews: Number(reviewsGrowth.toFixed(1)),
-      leads: Number(leadsGrowth.toFixed(1)),
+      views: Number((Math.random() * 20 - 5).toFixed(2)), // Still mock as we don't track views yet
+      clicks: Number((Math.random() * 15 - 2).toFixed(2)), // Still mock as we don't track clicks yet
+      reviews: Number(reviewsGrowth.toFixed(2)),
+      leads: Number(leadsGrowth.toFixed(2)),
     };
 
     // Generate recent activity with real review and lead data (last 7 days)
@@ -92,7 +107,7 @@ async function getAnalyticsData(userId: string) {
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      
+
       // Count actual reviews for this date
       const dailyReviews = allReviews.filter((review) => {
         const reviewDate = new Date(review.createdAt);
@@ -119,7 +134,7 @@ async function getAnalyticsData(userId: string) {
       totalClicks,
       totalReviews,
       totalLeads,
-      averageRating: Number(averageRating.toFixed(1)),
+      averageRating: Number(averageRating.toFixed(2)),
       monthlyGrowth,
       recentActivity,
       businesses: businesses.map((b) => ({
@@ -135,7 +150,7 @@ async function getAnalyticsData(userId: string) {
                 (
                   b.reviews.reduce((sum, r) => sum + r.rating, 0) /
                   b.reviews.length
-                ).toFixed(1)
+                ).toFixed(2)
               )
             : 0,
         memberSince: b.createdAt.toISOString().split("T")[0],
