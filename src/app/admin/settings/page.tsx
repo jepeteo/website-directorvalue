@@ -6,7 +6,34 @@ export const metadata: Metadata = {
   description: "System configuration and settings",
 };
 
-export default function AdminSettingsPage() {
+async function getSettings() {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const response = await fetch(`${baseUrl}/api/admin/settings`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch settings");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching settings:", error);
+    // Return default settings structure
+    return {
+      general: {},
+      security: {},
+      email: {},
+      features: {},
+      integrations: {},
+    };
+  }
+}
+
+export default async function AdminSettingsPage() {
+  const initialSettings = await getSettings();
+
   return (
     <div className="p-8 space-y-8">
       <div className="flex items-center justify-between">
@@ -18,7 +45,7 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      <AdminSettingsForm />
+      <AdminSettingsForm initialSettings={initialSettings} />
     </div>
   );
 }

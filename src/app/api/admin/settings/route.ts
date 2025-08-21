@@ -87,7 +87,7 @@ export async function GET() {
               value = setting.value
           }
           
-          organizedSettings[category][setting.key] = value
+          ;(organizedSettings[category] as Record<string, string | boolean | number>)[setting.key] = value
         } catch (error) {
           console.error(`Error parsing setting ${setting.key}:`, error)
         }

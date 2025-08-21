@@ -315,7 +315,8 @@ export default async function DashboardPage() {
               Error Loading Dashboard
             </h3>
             <p className="text-gray-600 mb-6">
-              We're having trouble loading your dashboard. Please try again.
+              We&apos;re having trouble loading your dashboard. Please try
+              again.
             </p>
             <Button asChild>
               <Link href="/dashboard">Refresh</Link>

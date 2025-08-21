@@ -7,7 +7,6 @@ import {
   TrendingUp,
   DollarSign,
   Eye,
-  MousePointer,
 } from "lucide-react";
 
 export const metadata: Metadata = {

@@ -82,27 +82,27 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts       Account[]
-  sessions       Session[]
-  businesses     Business[]
-  reviews        Review[]
+  accounts        Account[]
+  sessions        Session[]
+  businesses      Business[]
+  reviews         Review[]
   reviewResponses ReviewResponse[] @relation("ReviewResponses")
-  abuseReports   AbuseReport[]
-  adminActions   AdminActionLog[]
-  settingsUpdates Setting[]
+  abuseReports    AbuseReport[]
+  adminActions    AdminActionLog[]
+  settingsUpdates Setting[]        @relation("SettingsUpdatedBy")
 }
 
 model Business {
-  id          String        @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
-  slug        String        @unique
-  description String?       @db.Text
-  
+  slug        String  @unique
+  description String? @db.Text
+
   // Contact Info
-  email       String?
-  phone       String?
-  website     String?
-  
+  email   String?
+  phone   String?
+  website String?
+
   // Address
   addressLine1 String?
   addressLine2 String?
@@ -112,38 +112,38 @@ model Business {
   country      String?
   latitude     Float?
   longitude    Float?
-  
+
   // Business Details
-  logo         String?
-  images       String[]
-  services     String[]
-  tags         String[]
-  
+  logo     String?
+  images   String[]
+  services String[]
+  tags     String[]
+
   // Hours (JSON format: {"monday": {"open": "09:00", "close": "17:00"}, ...})
   workingHours Json?
-  
+
   // Plan and Status
-  planType     PlanType      @default(FREE_TRIAL)
-  status       ListingStatus @default(DRAFT)
-  
+  planType PlanType      @default(FREE_TRIAL)
+  status   ListingStatus @default(DRAFT)
+
   // Billing
   stripeCustomerId     String?
   stripeSubscriptionId String?
   trialEndsAt          DateTime?
-  
+
   // Metadata
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  ownerId      String
-  categoryId   String?
-  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  ownerId    String
+  categoryId String?
+
   // Relations
-  owner        User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  category     Category?  @relation(fields: [categoryId], references: [id])
+  owner        User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  category     Category?     @relation(fields: [categoryId], references: [id])
   reviews      Review[]
   leads        Lead[]
   abuseReports AbuseReport[]
-  
+
   @@index([status])
   @@index([planType])
   @@index([categoryId])
@@ -152,45 +152,45 @@ model Business {
 }
 
 model Category {
-  id          String @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
-  slug        String @unique
+  slug        String  @unique
   description String?
   icon        String?
   parentId    String?
-  sortOrder   Int    @default(0)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  sortOrder   Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children    Category[] @relation("CategoryHierarchy")
-  businesses  Business[]
-  
+  parent     Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children   Category[] @relation("CategoryHierarchy")
+  businesses Business[]
+
   @@index([parentId])
   @@index([slug])
 }
 
 model Review {
-  id        String   @id @default(cuid())
-  rating    Int      // 1-5 stars
-  title     String?
-  content   String?  @db.Text
-  isHidden  Boolean  @default(false)
-  
+  id       String  @id @default(cuid())
+  rating   Int // 1-5 stars
+  title    String?
+  content  String? @db.Text
+  isHidden Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relations
   businessId String
   userId     String
   business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  abuseReports AbuseReport[]
+
+  abuseReports  AbuseReport[]
   ownerResponse ReviewResponse?
-  
+
   @@index([businessId])
   @@index([userId])
   @@index([rating])
@@ -202,14 +202,14 @@ model ReviewResponse {
   content   String   @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relations
   reviewId String @unique
   review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  
-  ownerId  String
-  owner    User   @relation("ReviewResponses", fields: [ownerId], references: [id], onDelete: Cascade)
-  
+
+  ownerId String
+  owner   User   @relation("ReviewResponses", fields: [ownerId], references: [id], onDelete: Cascade)
+
   @@index([reviewId])
   @@index([ownerId])
 }
@@ -231,56 +231,56 @@ enum AbuseReportStatus {
 }
 
 model AbuseReport {
-  id          String            @id @default(cuid())
-  type        AbuseReportType
-  reason      String            @db.Text
-  status      AbuseReportStatus @default(PENDING)
-  adminNotes  String?           @db.Text
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id         String            @id @default(cuid())
+  type       AbuseReportType
+  reason     String            @db.Text
+  status     AbuseReportStatus @default(PENDING)
+  adminNotes String?           @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  reporterId  String
-  businessId  String?
-  reviewId    String?
-  
-  reporter    User      @relation(fields: [reporterId], references: [id])
-  business    Business? @relation(fields: [businessId], references: [id])
-  review      Review?   @relation(fields: [reviewId], references: [id])
-  
+  reporterId String
+  businessId String?
+  reviewId   String?
+
+  reporter User      @relation(fields: [reporterId], references: [id])
+  business Business? @relation(fields: [businessId], references: [id])
+  review   Review?   @relation(fields: [reviewId], references: [id])
+
   @@index([status])
   @@index([type])
 }
 
 model Lead {
-  id         String   @id @default(cuid())
-  name       String
-  email      String
-  phone      String?
-  company    String?
-  message    String   @db.Text
-  source     String   // "contact_form", "vip_relay", "quick_quote", etc.
-  status     LeadStatus @default(NEW)
-  priority   LeadPriority @default(MEDIUM)
-  
+  id       String       @id @default(cuid())
+  name     String
+  email    String
+  phone    String?
+  company  String?
+  message  String       @db.Text
+  source   String // "contact_form", "vip_relay", "quick_quote", etc.
+  status   LeadStatus   @default(NEW)
+  priority LeadPriority @default(MEDIUM)
+
   // Lead details
-  budget     String?  // Budget range or specific amount
-  timeline   String?  // When they need the service
-  location   String?  // Service location if different from business
-  
+  budget   String? // Budget range or specific amount
+  timeline String? // When they need the service
+  location String? // Service location if different from business
+
   // Tracking
-  viewedAt   DateTime?
+  viewedAt    DateTime?
   respondedAt DateTime?
   convertedAt DateTime?
-  
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
   businessId String?
   business   Business? @relation(fields: [businessId], references: [id])
-  
+
   @@index([businessId])
   @@index([source])
   @@index([status])
@@ -307,15 +307,15 @@ enum LeadPriority {
 model AdminActionLog {
   id         String   @id @default(cuid())
   adminId    String
-  action     String   // e.g., "BUSINESS_STATUS_CHANGE", "USER_SUSPEND", "REVIEW_MODERATE"
-  targetType String   // e.g., "BUSINESS", "USER", "REVIEW"
+  action     String // e.g., "BUSINESS_STATUS_CHANGE", "USER_SUSPEND", "REVIEW_MODERATE"
+  targetType String // e.g., "BUSINESS", "USER", "REVIEW"
   targetId   String
-  details    Json?    // Additional action details (previous values, reasons, etc.)
+  details    Json? // Additional action details (previous values, reasons, etc.)
   createdAt  DateTime @default(now())
-  
+
   // Relations
   admin User @relation(fields: [adminId], references: [id])
-  
+
   @@index([adminId])
   @@index([action])
   @@index([targetType])
@@ -327,17 +327,17 @@ model Setting {
   id          String   @id @default(cuid())
   key         String   @unique
   value       String   @db.Text
-  category    String   // "general", "security", "email", "features", "integrations"
+  category    String // "general", "security", "email", "features", "integrations"
   description String?
-  type        String   // "string", "boolean", "number", "json"
+  type        String // "string", "boolean", "number", "json"
   isPublic    Boolean  @default(false) // Whether setting can be accessed publicly
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   updatedBy   String
-  
+
   // Relations
-  updatedByUser User @relation(fields: [updatedBy], references: [id])
-  
+  updatedByUser User @relation("SettingsUpdatedBy", fields: [updatedBy], references: [id])
+
   @@index([category])
   @@index([key])
   @@index([isPublic])

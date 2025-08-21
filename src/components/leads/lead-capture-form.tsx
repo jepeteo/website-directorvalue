@@ -105,7 +105,7 @@ export function LeadCaptureForm({
       toast({
         title: "Message Sent!",
         description:
-          "Your inquiry has been sent to the business. They'll get back to you soon.",
+          "Your inquiry has been sent to the business. They&apos;ll get back to you soon.",
       });
 
       // Reset form after delay
@@ -156,7 +156,7 @@ export function LeadCaptureForm({
       </p>
       <div className="space-y-2 text-sm text-gray-500">
         <p>✅ Your contact details have been shared</p>
-        <p>📧 You'll receive a confirmation email shortly</p>
+        <p>📧 You&apos;ll receive a confirmation email shortly</p>
         <p>⚡ Expect a response within 1 business day</p>
       </div>
     </div>

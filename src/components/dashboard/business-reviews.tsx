@@ -267,7 +267,7 @@ export function BusinessReviews({ businessId }: BusinessReviewsProps) {
                 No Reviews Yet
               </h3>
               <p className="text-gray-600 mb-4">
-                You haven't received any reviews for this business yet.
+                You haven&apos;t received any reviews for this business yet.
               </p>
               <div className="space-y-2 text-sm text-gray-500">
                 <p>
