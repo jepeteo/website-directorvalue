@@ -1,0 +1,344 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth.js schema
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// User and Business models
+enum UserRole {
+  VISITOR
+  BUSINESS_OWNER
+  ADMIN
+  MODERATOR
+  FINANCE
+  SUPPORT
+}
+
+enum PlanType {
+  FREE_TRIAL
+  BASIC
+  PRO
+  VIP
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+  DEACTIVATED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(VISITOR)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts        Account[]
+  sessions        Session[]
+  businesses      Business[]
+  reviews         Review[]
+  reviewResponses ReviewResponse[] @relation("ReviewResponses")
+  abuseReports    AbuseReport[]
+  adminActions    AdminActionLog[]
+  settingsUpdates Setting[]        @relation("SettingsUpdatedBy")
+}
+
+model Business {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String? @db.Text
+
+  // Contact Info
+  email   String?
+  phone   String?
+  website String?
+
+  // Address
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  state        String?
+  postalCode   String?
+  country      String?
+  latitude     Float?
+  longitude    Float?
+
+  // Business Details
+  logo     String?
+  images   String[]
+  services String[]
+  tags     String[]
+
+  // Hours (JSON format: {"monday": {"open": "09:00", "close": "17:00"}, ...})
+  workingHours Json?
+
+  // Plan and Status
+  planType PlanType      @default(FREE_TRIAL)
+  status   ListingStatus @default(DRAFT)
+
+  // Billing
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  trialEndsAt          DateTime?
+
+  // Metadata
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  ownerId    String
+  categoryId String?
+
+  // Relations
+  owner        User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  reviews      Review[]
+  leads        Lead[]
+  abuseReports AbuseReport[]
+
+  @@index([status])
+  @@index([planType])
+  @@index([categoryId])
+  @@index([city])
+  @@index([country])
+}
+
+model Category {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
+  icon        String?
+  parentId    String?
+  sortOrder   Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  parent     Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children   Category[] @relation("CategoryHierarchy")
+  businesses Business[]
+
+  @@index([parentId])
+  @@index([slug])
+}
+
+model Review {
+  id       String  @id @default(cuid())
+  rating   Int // 1-5 stars
+  title    String?
+  content  String? @db.Text
+  isHidden Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  businessId String
+  userId     String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  abuseReports  AbuseReport[]
+  ownerResponse ReviewResponse?
+
+  @@index([businessId])
+  @@index([userId])
+  @@index([rating])
+  @@index([isHidden])
+}
+
+model ReviewResponse {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  reviewId String @unique
+  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  ownerId String
+  owner   User   @relation("ReviewResponses", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@index([ownerId])
+}
+
+enum AbuseReportType {
+  SPAM
+  INAPPROPRIATE_CONTENT
+  FAKE_REVIEW
+  HARASSMENT
+  COPYRIGHT
+  OTHER
+}
+
+enum AbuseReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
+
+model AbuseReport {
+  id         String            @id @default(cuid())
+  type       AbuseReportType
+  reason     String            @db.Text
+  status     AbuseReportStatus @default(PENDING)
+  adminNotes String?           @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  reporterId String
+  businessId String?
+  reviewId   String?
+
+  reporter User      @relation(fields: [reporterId], references: [id])
+  business Business? @relation(fields: [businessId], references: [id])
+  review   Review?   @relation(fields: [reviewId], references: [id])
+
+  @@index([status])
+  @@index([type])
+}
+
+model Lead {
+  id       String       @id @default(cuid())
+  name     String
+  email    String
+  phone    String?
+  company  String?
+  message  String       @db.Text
+  source   String // "contact_form", "vip_relay", "quick_quote", etc.
+  status   LeadStatus   @default(NEW)
+  priority LeadPriority @default(MEDIUM)
+
+  // Lead details
+  budget   String? // Budget range or specific amount
+  timeline String? // When they need the service
+  location String? // Service location if different from business
+
+  // Tracking
+  viewedAt    DateTime?
+  respondedAt DateTime?
+  convertedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  businessId String?
+  business   Business? @relation(fields: [businessId], references: [id])
+
+  @@index([businessId])
+  @@index([source])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum LeadStatus {
+  NEW
+  VIEWED
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  CLOSED_LOST
+}
+
+enum LeadPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// Admin Action Log model for audit trail
+model AdminActionLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  action     String // e.g., "BUSINESS_STATUS_CHANGE", "USER_SUSPEND", "REVIEW_MODERATE"
+  targetType String // e.g., "BUSINESS", "USER", "REVIEW"
+  targetId   String
+  details    Json? // Additional action details (previous values, reasons, etc.)
+  createdAt  DateTime @default(now())
+
+  // Relations
+  admin User @relation(fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([action])
+  @@index([targetType])
+  @@index([createdAt])
+}
+
+// Settings model for system configuration
+model Setting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String   @db.Text
+  category    String // "general", "security", "email", "features", "integrations"
+  description String?
+  type        String // "string", "boolean", "number", "json"
+  isPublic    Boolean  @default(false) // Whether setting can be accessed publicly
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  updatedBy   String
+
+  // Relations
+  updatedByUser User @relation("SettingsUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@index([category])
+  @@index([key])
+  @@index([isPublic])
+}

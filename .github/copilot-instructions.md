@@ -50,7 +50,22 @@
   /server
   /styles
   /prisma
+/mcp
+  /src/index.ts (MCP Server)
+  /package.json
+  /README.md
 ```
+
+## MCP (Model Context Protocol) Server
+
+- **Purpose:** External AI tool integration for business directory management
+- **Location:** `/mcp/` directory (excluded from Vercel deployment)
+- **Implementation:** Custom TypeScript MCP server with 11 management tools
+- **Tools:** Business CRUD, user management, reviews, leads, categories, analytics
+- **Database:** Integrated with main Prisma schema via separate connection
+- **Validation:** Zod schemas for all inputs/outputs
+- **Deployment:** Runs independently, excluded from main app build
+- **Setup:** Use `mcp/scripts/setup.js` for environment configuration
 
 ## Prisma Schema
 
@@ -89,3 +104,4 @@ _(See PRD for full schema — copy to `prisma/schema.prisma`.)_
 - CRM forwarding of leads.
 - i18n (EN/FR/DE), GDPR cookie banner.
 - Lighthouse ≥90 (Perf/SEO/Accessibility).
+- **MCP Server** for external AI tool integration.
